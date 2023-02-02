@@ -1,15 +1,15 @@
-# tiny-timers-native
+# @pearjs/timers
 
 Native timers for Javascript
 
 ```
-npm install tiny-timers-native
+npm install @pearjs/timers
 ```
 
 ## Usage
 
 ``` js
-const { setTimeout, clearTimeout } = require('tiny-timers-native')
+const { setTimeout, clearTimeout } = require('@pearjs/timers')
 ```
 
 ## License

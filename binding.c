@@ -7,11 +7,11 @@ typedef struct {
   napi_ref on_timeout;
   napi_env env;
   int32_t next_delay;
-} tiny_timers_t;
+} pear_timer_t;
 
 static void
 on_timer (uv_timer_t *handle) {
-  tiny_timers_t *self = (tiny_timers_t *) handle;
+  pear_timer_t *self = (pear_timer_t *) handle;
 
   napi_handle_scope scope;
   napi_open_handle_scope(self->env, &scope);
@@ -37,9 +37,9 @@ on_timer (uv_timer_t *handle) {
   napi_close_handle_scope(self->env, scope);
 }
 
-NAPI_METHOD(tiny_timer_init) {
+NAPI_METHOD(pear_timer_init) {
   NAPI_ARGV(2)
-  NAPI_ARGV_BUFFER_CAST(tiny_timers_t *, self, 0)
+  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
 
   self->env = env;
   self->next_delay = -1;
@@ -55,9 +55,9 @@ NAPI_METHOD(tiny_timer_init) {
   return NULL;
 }
 
-NAPI_METHOD(tiny_timer_pause) {
+NAPI_METHOD(pear_timer_pause) {
   NAPI_ARGV(1)
-  NAPI_ARGV_BUFFER_CAST(tiny_timers_t *, self, 0)
+  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
 
   uv_unref((uv_handle_t *) self);
   uv_timer_stop((uv_timer_t *) self);
@@ -66,9 +66,9 @@ NAPI_METHOD(tiny_timer_pause) {
   return NULL;
 }
 
-NAPI_METHOD(tiny_timer_resume) {
+NAPI_METHOD(pear_timer_resume) {
   NAPI_ARGV(4)
-  NAPI_ARGV_BUFFER_CAST(tiny_timers_t *, self, 0)
+  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
   NAPI_ARGV_INT32(ms, 1)
   NAPI_ARGV_UINT32(ref, 2)
 
@@ -81,27 +81,27 @@ NAPI_METHOD(tiny_timer_resume) {
   return NULL;
 }
 
-NAPI_METHOD(tiny_timer_ref) {
+NAPI_METHOD(pear_timer_ref) {
   NAPI_ARGV(1)
-  NAPI_ARGV_BUFFER_CAST(tiny_timers_t *, self, 0)
+  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
 
   uv_ref((uv_handle_t *) self);
 
   return NULL;
 }
 
-NAPI_METHOD(tiny_timer_unref) {
+NAPI_METHOD(pear_timer_unref) {
   NAPI_ARGV(1)
-  NAPI_ARGV_BUFFER_CAST(tiny_timers_t *, self, 0)
+  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
 
   uv_unref((uv_handle_t *) self);
 
   return NULL;
 }
 
-NAPI_METHOD(tiny_timer_start) {
+NAPI_METHOD(pear_timer_start) {
   NAPI_ARGV(2)
-  NAPI_ARGV_BUFFER_CAST(tiny_timers_t *, self, 0)
+  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
   NAPI_ARGV_INT32(ms, 1)
 
   uv_timer_start((uv_timer_t *) self, on_timer, ms, 0);
@@ -109,9 +109,9 @@ NAPI_METHOD(tiny_timer_start) {
   return NULL;
 }
 
-NAPI_METHOD(tiny_timer_stop) {
+NAPI_METHOD(pear_timer_stop) {
   NAPI_ARGV(1)
-  NAPI_ARGV_BUFFER_CAST(tiny_timers_t *, self, 0)
+  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
 
   uv_timer_stop((uv_timer_t *) self);
 
@@ -119,13 +119,13 @@ NAPI_METHOD(tiny_timer_stop) {
 }
 
 NAPI_INIT() {
-  NAPI_EXPORT_SIZEOF(tiny_timers_t)
-  NAPI_EXPORT_OFFSETOF(tiny_timers_t, next_delay)
-  NAPI_EXPORT_FUNCTION(tiny_timer_init)
-  NAPI_EXPORT_FUNCTION(tiny_timer_ref)
-  NAPI_EXPORT_FUNCTION(tiny_timer_unref)
-  NAPI_EXPORT_FUNCTION(tiny_timer_start)
-  NAPI_EXPORT_FUNCTION(tiny_timer_stop)
-  NAPI_EXPORT_FUNCTION(tiny_timer_pause)
-  NAPI_EXPORT_FUNCTION(tiny_timer_resume)
+  NAPI_EXPORT_SIZEOF(pear_timer_t)
+  NAPI_EXPORT_OFFSETOF(pear_timer_t, next_delay)
+  NAPI_EXPORT_FUNCTION(pear_timer_init)
+  NAPI_EXPORT_FUNCTION(pear_timer_ref)
+  NAPI_EXPORT_FUNCTION(pear_timer_unref)
+  NAPI_EXPORT_FUNCTION(pear_timer_start)
+  NAPI_EXPORT_FUNCTION(pear_timer_stop)
+  NAPI_EXPORT_FUNCTION(pear_timer_pause)
+  NAPI_EXPORT_FUNCTION(pear_timer_resume)
 }

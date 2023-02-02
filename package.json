@@ -1,8 +1,15 @@
 {
-  "name": "tiny-timers-native",
+  "name": "@pearjs/timers",
   "version": "1.2.6",
   "description": "Native timers for Javascript",
   "main": "index.js",
+  "files": [
+    "index.js",
+    "binding.c",
+    "binding.js",
+    "CMakeLists.txt",
+    "prebuilds"
+  ],
   "dependencies": {
     "b4a": "^1.6.1",
     "napi-macros": "^2.1.1",
@@ -18,12 +25,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mafintosh/tiny-timers-native.git"
+    "url": "https://github.com/holepunchto/pearjs-timers.git"
   },
   "author": "Mathias Buus (@mafintosh)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mafintosh/tiny-timers-native/issues"
+    "url": "https://github.com/holepunchto/pearjs-timers/issues"
   },
-  "homepage": "https://github.com/mafintosh/tiny-timers-native"
+  "homepage": "https://github.com/holepunchto/pearjs-timers"
 }
