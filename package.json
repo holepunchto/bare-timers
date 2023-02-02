@@ -13,7 +13,6 @@
   "dependencies": {
     "b4a": "^1.6.1",
     "napi-macros": "^2.1.1",
-    "node-gyp-build": "^4.5.0",
     "tiny-binary-heap": "^1.1.0"
   },
   "devDependencies": {
