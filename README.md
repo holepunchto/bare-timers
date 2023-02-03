@@ -1,6 +1,6 @@
 # @pearjs/timers
 
-Native timers for Javascript
+Native timers for Javascript.
 
 ```
 npm install @pearjs/timers
