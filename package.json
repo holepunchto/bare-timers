@@ -1,6 +1,6 @@
 {
   "name": "@pearjs/timers",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Native timers for Javascript",
   "main": "index.js",
   "files": [
