@@ -132,7 +132,11 @@ const handle = b4a.alloc(binding.sizeof_pear_timer_t)
 const view = new Int32Array(handle.buffer, handle.byteOffset + binding.offsetof_pear_timer_t_next_delay, 1)
 
 binding.pear_timer_init(handle, ontimer)
-process.once('exit', pause)
+
+process
+  .on('suspend', pause)
+  .on('resume', resume)
+  .on('exit', pause)
 
 let refs = 0
 let garbage = 0
