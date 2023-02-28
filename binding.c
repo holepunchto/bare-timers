@@ -1,131 +1,290 @@
-#include <napi-macros.h>
-#include <node_api.h>
+#include <assert.h>
+#include <js.h>
+#include <pear.h>
 #include <uv.h>
 
 typedef struct {
   uv_timer_t timer;
-  napi_ref on_timeout;
-  napi_env env;
-  int32_t next_delay;
+  js_ref_t *on_timeout;
+  js_env_t *env;
+  volatile int32_t next_delay;
 } pear_timer_t;
 
 static void
 on_timer (uv_timer_t *handle) {
   pear_timer_t *self = (pear_timer_t *) handle;
 
-  napi_handle_scope scope;
-  napi_open_handle_scope(self->env, &scope);
+  js_handle_scope_t *scope;
+  js_open_handle_scope(self->env, &scope);
 
-  napi_value ctx;
-  napi_get_global(self->env, &ctx);
+  js_value_t *ctx;
+  js_get_global(self->env, &ctx);
 
-  napi_value callback;
-  napi_get_reference_value(self->env, self->on_timeout, &callback);
+  js_value_t *callback;
+  js_get_reference_value(self->env, self->on_timeout, &callback);
 
-  self->next_delay = -1; // reset delay
+  self->next_delay = -1; // Reset delay
 
-  if (napi_make_callback(self->env, NULL, ctx, callback, 0, NULL, NULL) == napi_pending_exception) {
-    napi_value fatal_exception;
-    napi_get_and_clear_last_exception(self->env, &fatal_exception);
-    napi_fatal_exception(self->env, fatal_exception);
-  }
+  js_call_function(self->env, ctx, callback, 0, NULL, NULL);
 
   if (self->next_delay > -1) {
     uv_timer_start(handle, on_timer, self->next_delay, 0);
   }
 
-  napi_close_handle_scope(self->env, scope);
+  js_close_handle_scope(self->env, scope);
 }
 
-NAPI_METHOD(pear_timer_init) {
-  NAPI_ARGV(2)
-  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
+static js_value_t *
+pear_timer_init (js_env_t *env, js_callback_info_t *info) {
+  int err;
+
+  size_t argc = 2;
+  js_value_t *argv[2];
+
+  err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
+  assert(err == 0);
+
+  assert(argc == 2);
+
+  pear_timer_t *self;
+  err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
+  assert(err == 0);
 
   self->env = env;
   self->next_delay = -1;
 
   uv_loop_t *loop;
-  napi_get_uv_event_loop(env, &loop);
+  js_get_env_loop(env, &loop);
 
-  uv_timer_init(loop, (uv_timer_t *) self);
-  uv_unref((uv_handle_t *) self);
+  err = uv_timer_init(loop, &self->timer);
+  if (err < 0) {
+    js_throw_error(env, uv_err_name(err), uv_strerror(err));
+    return NULL;
+  }
 
-  napi_create_reference(env, argv[1], 1, &(self->on_timeout));
+  uv_unref((uv_handle_t *) &self->timer);
 
-  return NULL;
-}
-
-NAPI_METHOD(pear_timer_pause) {
-  NAPI_ARGV(1)
-  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
-
-  uv_unref((uv_handle_t *) self);
-  uv_timer_stop((uv_timer_t *) self);
-  napi_delete_reference(env, self->on_timeout);
+  err = js_create_reference(env, argv[1], 1, &self->on_timeout);
+  assert(err == 0);
 
   return NULL;
 }
 
-NAPI_METHOD(pear_timer_resume) {
-  NAPI_ARGV(4)
-  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
-  NAPI_ARGV_INT32(ms, 1)
-  NAPI_ARGV_UINT32(ref, 2)
+static js_value_t *
+pear_timer_pause (js_env_t *env, js_callback_info_t *info) {
+  int err;
+
+  size_t argc = 1;
+  js_value_t *argv[1];
+
+  err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
+  assert(err == 0);
+
+  assert(argc == 1);
+
+  pear_timer_t *self;
+  err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
+  assert(err == 0);
+
+  uv_unref((uv_handle_t *) &self->timer);
+
+  err = uv_timer_stop(&self->timer);
+  if (err < 0) {
+    js_throw_error(env, uv_err_name(err), uv_strerror(err));
+    return NULL;
+  }
+
+  err = js_delete_reference(env, self->on_timeout);
+  assert(err == 0);
+
+  return NULL;
+}
+
+static js_value_t *
+pear_timer_resume (js_env_t *env, js_callback_info_t *info) {
+  int err;
+
+  size_t argc = 4;
+  js_value_t *argv[4];
+
+  err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
+  assert(err == 0);
+
+  assert(argc == 4);
+
+  pear_timer_t *self;
+  err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
+  assert(err == 0);
+
+  int32_t ms;
+  err = js_get_value_int32(env, argv[1], &ms);
+  assert(err == 0);
+
+  uint32_t ref;
+  err = js_get_value_uint32(env, argv[2], &ref);
+  assert(err == 0);
 
   if (ref > 0) uv_ref((uv_handle_t *) self);
-  napi_create_reference(env, argv[3], 1, &(self->on_timeout));
+
+  err = js_create_reference(env, argv[3], 1, &self->on_timeout);
+  assert(err == 0);
+
   self->next_delay = 0;
 
-  uv_timer_start((uv_timer_t *) self, on_timer, ms, 0);
+  err = uv_timer_start(&self->timer, on_timer, ms, 0);
+  if (err < 0) {
+    js_throw_error(env, uv_err_name(err), uv_strerror(err));
+    return NULL;
+  }
 
   return NULL;
 }
 
-NAPI_METHOD(pear_timer_ref) {
-  NAPI_ARGV(1)
-  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
+static js_value_t *
+pear_timer_ref (js_env_t *env, js_callback_info_t *info) {
+  int err;
 
-  uv_ref((uv_handle_t *) self);
+  size_t argc = 1;
+  js_value_t *argv[1];
 
-  return NULL;
-}
+  err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
+  assert(err == 0);
 
-NAPI_METHOD(pear_timer_unref) {
-  NAPI_ARGV(1)
-  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
+  assert(argc == 1);
 
-  uv_unref((uv_handle_t *) self);
+  pear_timer_t *self;
+  err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
+  assert(err == 0);
 
-  return NULL;
-}
-
-NAPI_METHOD(pear_timer_start) {
-  NAPI_ARGV(2)
-  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
-  NAPI_ARGV_INT32(ms, 1)
-
-  uv_timer_start((uv_timer_t *) self, on_timer, ms, 0);
+  uv_ref((uv_handle_t *) &self->timer);
 
   return NULL;
 }
 
-NAPI_METHOD(pear_timer_stop) {
-  NAPI_ARGV(1)
-  NAPI_ARGV_BUFFER_CAST(pear_timer_t *, self, 0)
+static js_value_t *
+pear_timer_unref (js_env_t *env, js_callback_info_t *info) {
+  int err;
 
-  uv_timer_stop((uv_timer_t *) self);
+  size_t argc = 1;
+  js_value_t *argv[1];
+
+  err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
+  assert(err == 0);
+
+  assert(argc == 1);
+
+  pear_timer_t *self;
+  err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
+  assert(err == 0);
+
+  uv_unref((uv_handle_t *) &self->timer);
 
   return NULL;
 }
 
-NAPI_INIT() {
-  NAPI_EXPORT_SIZEOF(pear_timer_t)
-  NAPI_EXPORT_OFFSETOF(pear_timer_t, next_delay)
-  NAPI_EXPORT_FUNCTION(pear_timer_init)
-  NAPI_EXPORT_FUNCTION(pear_timer_ref)
-  NAPI_EXPORT_FUNCTION(pear_timer_unref)
-  NAPI_EXPORT_FUNCTION(pear_timer_start)
-  NAPI_EXPORT_FUNCTION(pear_timer_stop)
-  NAPI_EXPORT_FUNCTION(pear_timer_pause)
-  NAPI_EXPORT_FUNCTION(pear_timer_resume)
+static js_value_t *
+pear_timer_start (js_env_t *env, js_callback_info_t *info) {
+  int err;
+
+  size_t argc = 2;
+  js_value_t *argv[2];
+
+  err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
+  assert(err == 0);
+
+  assert(argc == 2);
+
+  pear_timer_t *self;
+  err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
+  assert(err == 0);
+
+  int32_t ms;
+  err = js_get_value_int32(env, argv[1], &ms);
+  assert(err == 0);
+
+  err = uv_timer_start((uv_timer_t *) &self->timer, on_timer, ms, 0);
+  if (err < 0) {
+    js_throw_error(env, uv_err_name(err), uv_strerror(err));
+    return NULL;
+  }
+
+  return NULL;
 }
+
+static js_value_t *
+pear_timer_stop (js_env_t *env, js_callback_info_t *info) {
+  int err;
+
+  size_t argc = 1;
+  js_value_t *argv[1];
+
+  err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
+  assert(err == 0);
+
+  assert(argc == 1);
+
+  pear_timer_t *self;
+  err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
+  assert(err == 0);
+
+  err = uv_timer_stop((uv_timer_t *) &self->timer);
+  if (err < 0) {
+    js_throw_error(env, uv_err_name(err), uv_strerror(err));
+    return NULL;
+  }
+
+  return NULL;
+}
+
+static js_value_t *
+init (js_env_t *env, js_value_t *exports) {
+  {
+    js_value_t *val;
+    js_create_uint32(env, sizeof(pear_timer_t), &val);
+    js_set_named_property(env, exports, "sizeofTimer", val);
+  }
+  {
+    js_value_t *val;
+    js_create_uint32(env, offsetof(pear_timer_t, next_delay), &val);
+    js_set_named_property(env, exports, "offsetofTimerNextDelay", val);
+  }
+  {
+    js_value_t *fn;
+    js_create_function(env, "init", -1, pear_timer_init, NULL, &fn);
+    js_set_named_property(env, exports, "init", fn);
+  }
+  {
+    js_value_t *fn;
+    js_create_function(env, "ref", -1, pear_timer_ref, NULL, &fn);
+    js_set_named_property(env, exports, "ref", fn);
+  }
+  {
+    js_value_t *fn;
+    js_create_function(env, "unref", -1, pear_timer_unref, NULL, &fn);
+    js_set_named_property(env, exports, "unref", fn);
+  }
+  {
+    js_value_t *fn;
+    js_create_function(env, "start", -1, pear_timer_start, NULL, &fn);
+    js_set_named_property(env, exports, "start", fn);
+  }
+  {
+    js_value_t *fn;
+    js_create_function(env, "stop", -1, pear_timer_stop, NULL, &fn);
+    js_set_named_property(env, exports, "stop", fn);
+  }
+  {
+    js_value_t *fn;
+    js_create_function(env, "pause", -1, pear_timer_pause, NULL, &fn);
+    js_set_named_property(env, exports, "pause", fn);
+  }
+  {
+    js_value_t *fn;
+    js_create_function(env, "resume", -1, pear_timer_resume, NULL, &fn);
+    js_set_named_property(env, exports, "resume", fn);
+  }
+
+  return exports;
+}
+
+PEAR_MODULE(init)

@@ -11,7 +11,7 @@
     "prebuilds"
   ],
   "scripts": {
-    "test": "standard && brittle test/*.js",
+    "test": "standard && pear test/all.js",
     "install": "pear-dev rebuild",
     "prebuild": "pear-dev prebuild"
   },
@@ -26,8 +26,7 @@
   },
   "homepage": "https://github.com/holepunchto/pearjs-timers#readme",
   "dependencies": {
-    "b4a": "^1.6.1",
-    "napi-macros": "^2.1.1",
+    "@pearjs/buffer": "^1.1.0",
     "tiny-binary-heap": "^1.1.0"
   },
   "devDependencies": {

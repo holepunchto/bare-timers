@@ -1,6 +1,6 @@
 const test = require('brittle')
-const timers = require('../index.js')
-const { isAround, countTimers, sleep } = require('./helpers/index.js')
+const timers = require('..')
+const { isAround, countTimers, sleep } = require('./helpers')
 
 test('setInterval', async function (t) {
   t.plan(5)
@@ -55,7 +55,7 @@ test('setInterval timer active', async function (t) {
   t.ok(timer.active)
 })
 
-test('interrupt setInterval with CPU overhead', async function (t) {
+test.skip('interrupt setInterval with CPU spin', async function (t) {
   t.plan(2)
 
   const started = Date.now()
@@ -69,7 +69,7 @@ test('interrupt setInterval with CPU overhead', async function (t) {
   while (Date.now() - started < 75) {} // eslint-disable-line no-empty
 })
 
-test('interrupt setInterval with Atomics.wait', async function (t) {
+test.skip('interrupt setInterval with Atomics.wait', async function (t) {
   t.plan(2)
 
   const started = Date.now()

@@ -1,6 +1,6 @@
 const test = require('brittle')
-const timers = require('../index.js')
-const { isAround, countTimers } = require('./helpers/index.js')
+const timers = require('..')
+const { isAround, countTimers } = require('./helpers')
 
 test('setImmediate', async function (t) {
   t.plan(4)

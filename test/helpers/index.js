@@ -1,4 +1,4 @@
-const timers = require('../../index.js')
+const timers = require('../..')
 
 const nil = new Int32Array(new SharedArrayBuffer(4))
 
@@ -12,10 +12,8 @@ function countTimers () {
   return activeTimers
 }
 
-function isAround (actual, expected) {
-  if (!(actual >= expected)) return false
-  if (process.env.CI) return true // GitHub CI machines are slow
-  return (actual - expected) <= 10
+function isAround (actual, expected, epsilon = 10) {
+  return Math.abs(actual - expected) < epsilon
 }
 
 function sleep (ms) {

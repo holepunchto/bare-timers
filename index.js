@@ -1,5 +1,5 @@
+const Buffer = require('@pearjs/buffer')
 const Heap = require('tiny-binary-heap')
-const b4a = require('b4a')
 const binding = require('./binding')
 
 class Timer {
@@ -128,10 +128,10 @@ class TimerList {
 const timers = new Map()
 const queue = new Heap(cmp)
 const immediates = new TimerList(0)
-const handle = b4a.alloc(binding.sizeof_pear_timer_t)
-const view = new Int32Array(handle.buffer, handle.byteOffset + binding.offsetof_pear_timer_t_next_delay, 1)
+const handle = Buffer.alloc(binding.sizeofTimer)
+const view = new Int32Array(handle.buffer, handle.byteOffset + binding.offsetofTimerNextDelay, 1)
 
-binding.pear_timer_init(handle, ontimer)
+binding.init(handle, ontimer)
 
 process
   .on('suspend', pause)
@@ -148,22 +148,22 @@ let tracing = false
 
 function pause () {
   if (paused) return
-  binding.pear_timer_pause(handle)
+  binding.pause(handle)
   paused = true
 }
 
 function resume () {
   if (!paused) return
-  binding.pear_timer_resume(handle, Math.max(nextExpiry - Date.now(), 0), refs, ontimer)
+  binding.resume(handle, Math.max(nextExpiry - Date.now(), 0), refs, ontimer)
   paused = false
 }
 
 function incRef () {
-  if (refs++ === 0) binding.pear_timer_ref(handle)
+  if (refs++ === 0) binding.ref(handle)
 }
 
 function decRef () {
-  if (--refs === 0) binding.pear_timer_unref(handle)
+  if (--refs === 0) binding.unref(handle)
 }
 
 function trace (val) {
@@ -178,12 +178,12 @@ function tick () {
 
 function cancelTimer () {
   if (paused || ticks === triggered) return
-  binding.pear_timer_stop(handle)
+  binding.stop(handle)
 }
 
 function updateTimer (ms) {
   if (paused || ticks === triggered) return
-  binding.pear_timer_start(handle, ms)
+  binding.start(handle, ms)
 }
 
 function ontimer () {

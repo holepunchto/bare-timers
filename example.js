@@ -1,4 +1,4 @@
-const timers = require('./')
+const timers = require('.')
 
 timers.setImmediate(function () {
   console.log('hoto')
