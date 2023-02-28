@@ -397,27 +397,27 @@ function typeError (message, code) {
   return error
 }
 
+function * iterator () {
+  if (immediates.tail !== null) {
+    yield immediates.tail
+    for (let t = immediates.tail._next; t !== immediates.tail; t = t._next) yield t
+  }
+  for (const list of timers.values()) {
+    if (list.tail === null) continue
+    yield list.tail
+    for (let t = list.tail._next; t !== list.tail; t = t._next) yield t
+  }
+}
+
 module.exports = {
   trace,
-  handle,
-  ontimer,
-  pause,
-  resume,
   setTimeout,
   clearTimeout,
   setInterval,
   clearInterval,
   setImmediate,
   clearImmediate,
-  * [Symbol.iterator] () {
-    if (immediates.tail !== null) {
-      yield immediates.tail
-      for (let t = immediates.tail._next; t !== immediates.tail; t = t._next) yield t
-    }
-    for (const list of timers.values()) {
-      if (list.tail === null) continue
-      yield list.tail
-      for (let t = list.tail._next; t !== list.tail; t = t._next) yield t
-    }
+  [Symbol.iterator] () {
+    return iterator()
   }
 }
