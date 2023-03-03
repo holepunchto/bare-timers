@@ -14,4 +14,4 @@ const { setTimeout, clearTimeout } = require('@pearjs/timers')
 
 ## License
 
-MIT
+Apache-2.0
