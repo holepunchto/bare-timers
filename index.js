@@ -1,4 +1,3 @@
-const Buffer = require('@pearjs/buffer')
 const Heap = require('tiny-binary-heap')
 const binding = require('./binding')
 
