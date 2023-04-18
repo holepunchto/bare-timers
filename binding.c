@@ -35,6 +35,11 @@ on_timer (uv_timer_t *handle) {
   js_close_handle_scope(self->env, scope);
 }
 
+static void
+on_close (uv_handle_t *handle) {
+  free(handle);
+}
+
 static js_value_t *
 pear_timer_init (js_env_t *env, js_callback_info_t *info) {
   int err;
@@ -69,6 +74,30 @@ pear_timer_init (js_env_t *env, js_callback_info_t *info) {
   uv_unref((uv_handle_t *) self->timer);
 
   err = js_create_reference(env, argv[1], 1, &self->on_timeout);
+  assert(err == 0);
+
+  return NULL;
+}
+
+static js_value_t *
+pear_timer_destroy (js_env_t *env, js_callback_info_t *info) {
+  int err;
+
+  size_t argc = 1;
+  js_value_t *argv[1];
+
+  err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
+  assert(err == 0);
+
+  assert(argc == 1);
+
+  pear_timer_t *self;
+  err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
+  assert(err == 0);
+
+  uv_close((uv_handle_t *) self->timer, on_close);
+
+  err = js_delete_reference(env, self->on_timeout);
   assert(err == 0);
 
   return NULL;
@@ -256,6 +285,11 @@ init (js_env_t *env, js_value_t *exports) {
     js_value_t *fn;
     js_create_function(env, "init", -1, pear_timer_init, NULL, &fn);
     js_set_named_property(env, exports, "init", fn);
+  }
+  {
+    js_value_t *fn;
+    js_create_function(env, "destroy", -1, pear_timer_destroy, NULL, &fn);
+    js_set_named_property(env, exports, "destroy", fn);
   }
   {
     js_value_t *fn;

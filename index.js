@@ -135,7 +135,7 @@ binding.init(handle, ontimer)
 process
   .on('suspend', pause)
   .on('resume', resume)
-  .on('exit', pause)
+  .on('exit', destroy)
 
 let refs = 0
 let garbage = 0
@@ -144,6 +144,10 @@ let ticks = 1
 let triggered = 0
 let paused = false
 let tracing = false
+
+function destroy () {
+  binding.destroy(handle)
+}
 
 function pause () {
   if (paused) return
