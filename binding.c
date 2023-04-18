@@ -1,10 +1,11 @@
 #include <assert.h>
 #include <js.h>
 #include <pear.h>
+#include <stdlib.h>
 #include <uv.h>
 
 typedef struct {
-  uv_timer_t timer;
+  uv_timer_t *timer;
   js_ref_t *on_timeout;
   js_env_t *env;
   volatile int32_t next_delay;
@@ -12,7 +13,7 @@ typedef struct {
 
 static void
 on_timer (uv_timer_t *handle) {
-  pear_timer_t *self = (pear_timer_t *) handle;
+  pear_timer_t *self = (pear_timer_t *) handle->data;
 
   js_handle_scope_t *scope;
   js_open_handle_scope(self->env, &scope);
@@ -56,13 +57,16 @@ pear_timer_init (js_env_t *env, js_callback_info_t *info) {
   uv_loop_t *loop;
   js_get_env_loop(env, &loop);
 
-  err = uv_timer_init(loop, &self->timer);
+  self->timer = malloc(sizeof(uv_timer_t));
+  self->timer->data = self;
+
+  err = uv_timer_init(loop, self->timer);
   if (err < 0) {
     js_throw_error(env, uv_err_name(err), uv_strerror(err));
     return NULL;
   }
 
-  uv_unref((uv_handle_t *) &self->timer);
+  uv_unref((uv_handle_t *) self->timer);
 
   err = js_create_reference(env, argv[1], 1, &self->on_timeout);
   assert(err == 0);
@@ -86,9 +90,9 @@ pear_timer_pause (js_env_t *env, js_callback_info_t *info) {
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
   assert(err == 0);
 
-  uv_unref((uv_handle_t *) &self->timer);
+  uv_unref((uv_handle_t *) self->timer);
 
-  err = uv_timer_stop(&self->timer);
+  err = uv_timer_stop(self->timer);
   if (err < 0) {
     js_throw_error(env, uv_err_name(err), uv_strerror(err));
     return NULL;
@@ -124,14 +128,14 @@ pear_timer_resume (js_env_t *env, js_callback_info_t *info) {
   err = js_get_value_uint32(env, argv[2], &ref);
   assert(err == 0);
 
-  if (ref > 0) uv_ref((uv_handle_t *) self);
+  if (ref > 0) uv_ref((uv_handle_t *) self->timer);
 
   err = js_create_reference(env, argv[3], 1, &self->on_timeout);
   assert(err == 0);
 
   self->next_delay = 0;
 
-  err = uv_timer_start(&self->timer, on_timer, ms, 0);
+  err = uv_timer_start(self->timer, on_timer, ms, 0);
   if (err < 0) {
     js_throw_error(env, uv_err_name(err), uv_strerror(err));
     return NULL;
@@ -156,7 +160,7 @@ pear_timer_ref (js_env_t *env, js_callback_info_t *info) {
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
   assert(err == 0);
 
-  uv_ref((uv_handle_t *) &self->timer);
+  uv_ref((uv_handle_t *) self->timer);
 
   return NULL;
 }
@@ -177,7 +181,7 @@ pear_timer_unref (js_env_t *env, js_callback_info_t *info) {
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
   assert(err == 0);
 
-  uv_unref((uv_handle_t *) &self->timer);
+  uv_unref((uv_handle_t *) self->timer);
 
   return NULL;
 }
@@ -202,7 +206,7 @@ pear_timer_start (js_env_t *env, js_callback_info_t *info) {
   err = js_get_value_int32(env, argv[1], &ms);
   assert(err == 0);
 
-  err = uv_timer_start((uv_timer_t *) &self->timer, on_timer, ms, 0);
+  err = uv_timer_start(self->timer, on_timer, ms, 0);
   if (err < 0) {
     js_throw_error(env, uv_err_name(err), uv_strerror(err));
     return NULL;
@@ -227,7 +231,7 @@ pear_timer_stop (js_env_t *env, js_callback_info_t *info) {
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
   assert(err == 0);
 
-  err = uv_timer_stop((uv_timer_t *) &self->timer);
+  err = uv_timer_stop(self->timer);
   if (err < 0) {
     js_throw_error(env, uv_err_name(err), uv_strerror(err));
     return NULL;
