@@ -1,5 +1,5 @@
 {
-  "name": "@pearjs/timers",
+  "name": "bare-timers",
   "version": "1.4.2",
   "description": "Native timers for Javascript",
   "main": "index.js",
@@ -11,20 +11,20 @@
     "prebuilds"
   ],
   "scripts": {
-    "test": "standard && pear test/all.js",
-    "install": "pear-dev rebuild",
-    "prebuild": "pear-dev prebuild"
+    "test": "standard && bare test/all.js",
+    "install": "bare-dev rebuild",
+    "prebuild": "bare-dev prebuild"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/holepunchto/pearjs-timers.git"
+    "url": "https://github.com/holepunchto/bare-timers.git"
   },
   "author": "Holepunch",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/holepunchto/pearjs-timers/issues"
+    "url": "https://github.com/holepunchto/bare-timers/issues"
   },
-  "homepage": "https://github.com/holepunchto/pearjs-timers#readme",
+  "homepage": "https://github.com/holepunchto/bare-timers#readme",
   "dependencies": {
     "tiny-binary-heap": "^1.1.0"
   },

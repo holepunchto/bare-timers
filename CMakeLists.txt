@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(pear_timers C)
+project(bare_timers C)
 
-include(pear)
+include(bare)
 
-add_pear_module(pear_timers)
+add_bare_module(bare_timers)
 
 target_sources(
-  pear_timers
+  bare_timers
   PRIVATE
     binding.c
 )

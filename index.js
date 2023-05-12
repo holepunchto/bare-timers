@@ -137,6 +137,10 @@ process
   .on('resume', resume)
   .on('exit', destroy)
 
+if (process.thread) {
+  process.thread.on('exit', destroy)
+}
+
 let refs = 0
 let garbage = 0
 let nextExpiry = 0

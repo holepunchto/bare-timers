@@ -1,15 +1,15 @@
-# @pearjs/timers
+# bare-timers
 
 Native timers for Javascript.
 
 ```
-npm install @pearjs/timers
+npm i bare-timers
 ```
 
 ## Usage
 
 ``` js
-const { setTimeout, clearTimeout } = require('@pearjs/timers')
+const { setTimeout, clearTimeout } = require('bare-timers')
 ```
 
 ## License

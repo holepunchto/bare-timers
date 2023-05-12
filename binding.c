@@ -1,6 +1,6 @@
 #include <assert.h>
+#include <bare.h>
 #include <js.h>
-#include <pear.h>
 #include <stdlib.h>
 #include <uv.h>
 
@@ -9,11 +9,11 @@ typedef struct {
   js_ref_t *on_timeout;
   js_env_t *env;
   volatile int32_t next_delay;
-} pear_timer_t;
+} bare_timer_t;
 
 static void
 on_timer (uv_timer_t *handle) {
-  pear_timer_t *self = (pear_timer_t *) handle->data;
+  bare_timer_t *self = (bare_timer_t *) handle->data;
 
   js_handle_scope_t *scope;
   js_open_handle_scope(self->env, &scope);
@@ -41,7 +41,7 @@ on_close (uv_handle_t *handle) {
 }
 
 static js_value_t *
-pear_timer_init (js_env_t *env, js_callback_info_t *info) {
+bare_timer_init (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 2;
@@ -52,7 +52,7 @@ pear_timer_init (js_env_t *env, js_callback_info_t *info) {
 
   assert(argc == 2);
 
-  pear_timer_t *self;
+  bare_timer_t *self;
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
   assert(err == 0);
 
@@ -80,7 +80,7 @@ pear_timer_init (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-pear_timer_destroy (js_env_t *env, js_callback_info_t *info) {
+bare_timer_destroy (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -91,7 +91,7 @@ pear_timer_destroy (js_env_t *env, js_callback_info_t *info) {
 
   assert(argc == 1);
 
-  pear_timer_t *self;
+  bare_timer_t *self;
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
   assert(err == 0);
 
@@ -104,7 +104,7 @@ pear_timer_destroy (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-pear_timer_pause (js_env_t *env, js_callback_info_t *info) {
+bare_timer_pause (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -115,7 +115,7 @@ pear_timer_pause (js_env_t *env, js_callback_info_t *info) {
 
   assert(argc == 1);
 
-  pear_timer_t *self;
+  bare_timer_t *self;
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
   assert(err == 0);
 
@@ -134,7 +134,7 @@ pear_timer_pause (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-pear_timer_resume (js_env_t *env, js_callback_info_t *info) {
+bare_timer_resume (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 4;
@@ -145,7 +145,7 @@ pear_timer_resume (js_env_t *env, js_callback_info_t *info) {
 
   assert(argc == 4);
 
-  pear_timer_t *self;
+  bare_timer_t *self;
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
   assert(err == 0);
 
@@ -174,7 +174,7 @@ pear_timer_resume (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-pear_timer_ref (js_env_t *env, js_callback_info_t *info) {
+bare_timer_ref (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -185,7 +185,7 @@ pear_timer_ref (js_env_t *env, js_callback_info_t *info) {
 
   assert(argc == 1);
 
-  pear_timer_t *self;
+  bare_timer_t *self;
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
   assert(err == 0);
 
@@ -195,7 +195,7 @@ pear_timer_ref (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-pear_timer_unref (js_env_t *env, js_callback_info_t *info) {
+bare_timer_unref (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -206,7 +206,7 @@ pear_timer_unref (js_env_t *env, js_callback_info_t *info) {
 
   assert(argc == 1);
 
-  pear_timer_t *self;
+  bare_timer_t *self;
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
   assert(err == 0);
 
@@ -216,7 +216,7 @@ pear_timer_unref (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-pear_timer_start (js_env_t *env, js_callback_info_t *info) {
+bare_timer_start (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 2;
@@ -227,7 +227,7 @@ pear_timer_start (js_env_t *env, js_callback_info_t *info) {
 
   assert(argc == 2);
 
-  pear_timer_t *self;
+  bare_timer_t *self;
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
   assert(err == 0);
 
@@ -245,7 +245,7 @@ pear_timer_start (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-pear_timer_stop (js_env_t *env, js_callback_info_t *info) {
+bare_timer_stop (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -256,7 +256,7 @@ pear_timer_stop (js_env_t *env, js_callback_info_t *info) {
 
   assert(argc == 1);
 
-  pear_timer_t *self;
+  bare_timer_t *self;
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
   assert(err == 0);
 
@@ -273,56 +273,56 @@ static js_value_t *
 init (js_env_t *env, js_value_t *exports) {
   {
     js_value_t *val;
-    js_create_uint32(env, sizeof(pear_timer_t), &val);
+    js_create_uint32(env, sizeof(bare_timer_t), &val);
     js_set_named_property(env, exports, "sizeofTimer", val);
   }
   {
     js_value_t *val;
-    js_create_uint32(env, offsetof(pear_timer_t, next_delay), &val);
+    js_create_uint32(env, offsetof(bare_timer_t, next_delay), &val);
     js_set_named_property(env, exports, "offsetofTimerNextDelay", val);
   }
   {
     js_value_t *fn;
-    js_create_function(env, "init", -1, pear_timer_init, NULL, &fn);
+    js_create_function(env, "init", -1, bare_timer_init, NULL, &fn);
     js_set_named_property(env, exports, "init", fn);
   }
   {
     js_value_t *fn;
-    js_create_function(env, "destroy", -1, pear_timer_destroy, NULL, &fn);
+    js_create_function(env, "destroy", -1, bare_timer_destroy, NULL, &fn);
     js_set_named_property(env, exports, "destroy", fn);
   }
   {
     js_value_t *fn;
-    js_create_function(env, "ref", -1, pear_timer_ref, NULL, &fn);
+    js_create_function(env, "ref", -1, bare_timer_ref, NULL, &fn);
     js_set_named_property(env, exports, "ref", fn);
   }
   {
     js_value_t *fn;
-    js_create_function(env, "unref", -1, pear_timer_unref, NULL, &fn);
+    js_create_function(env, "unref", -1, bare_timer_unref, NULL, &fn);
     js_set_named_property(env, exports, "unref", fn);
   }
   {
     js_value_t *fn;
-    js_create_function(env, "start", -1, pear_timer_start, NULL, &fn);
+    js_create_function(env, "start", -1, bare_timer_start, NULL, &fn);
     js_set_named_property(env, exports, "start", fn);
   }
   {
     js_value_t *fn;
-    js_create_function(env, "stop", -1, pear_timer_stop, NULL, &fn);
+    js_create_function(env, "stop", -1, bare_timer_stop, NULL, &fn);
     js_set_named_property(env, exports, "stop", fn);
   }
   {
     js_value_t *fn;
-    js_create_function(env, "pause", -1, pear_timer_pause, NULL, &fn);
+    js_create_function(env, "pause", -1, bare_timer_pause, NULL, &fn);
     js_set_named_property(env, exports, "pause", fn);
   }
   {
     js_value_t *fn;
-    js_create_function(env, "resume", -1, pear_timer_resume, NULL, &fn);
+    js_create_function(env, "resume", -1, bare_timer_resume, NULL, &fn);
     js_set_named_property(env, exports, "resume", fn);
   }
 
   return exports;
 }
 
-PEAR_MODULE(pear_timers, init)
+BARE_MODULE(bare_timers, init)
