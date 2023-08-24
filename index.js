@@ -161,7 +161,7 @@ function pause () {
 
 function resume () {
   if (!paused) return
-  binding.resume(handle, Math.max(nextExpiry - Date.now(), 0), refs, ontimer)
+  binding.resume(handle, Math.max(nextExpiry - Date.now(), 0), refs)
   paused = false
 }
 

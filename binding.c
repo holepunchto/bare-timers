@@ -127,9 +127,6 @@ bare_timer_pause (js_env_t *env, js_callback_info_t *info) {
     return NULL;
   }
 
-  err = js_delete_reference(env, self->on_timeout);
-  assert(err == 0);
-
   return NULL;
 }
 
@@ -137,13 +134,13 @@ static js_value_t *
 bare_timer_resume (js_env_t *env, js_callback_info_t *info) {
   int err;
 
-  size_t argc = 4;
-  js_value_t *argv[4];
+  size_t argc = 3;
+  js_value_t *argv[3];
 
   err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
   assert(err == 0);
 
-  assert(argc == 4);
+  assert(argc == 3);
 
   bare_timer_t *self;
   err = js_get_typedarray_info(env, argv[0], NULL, (void **) &self, NULL, NULL, NULL);
@@ -158,9 +155,6 @@ bare_timer_resume (js_env_t *env, js_callback_info_t *info) {
   assert(err == 0);
 
   if (ref > 0) uv_ref((uv_handle_t *) self->timer);
-
-  err = js_create_reference(env, argv[3], 1, &self->on_timeout);
-  assert(err == 0);
 
   self->next_delay = 0;
 
