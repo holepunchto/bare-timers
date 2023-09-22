@@ -188,16 +188,11 @@ test('error inside of setTimeout', async function (t) {
 })
 
 test('setTimeout with big delay', async function (t) {
-  t.plan(2)
+  t.plan(1)
 
-  try {
-    timers.setTimeout(function () {}, 0x7fffffff + 1)
-    t.fail('should have failed to set a timeout')
-  } catch (error) {
-    t.is(error.code, 'ERR_INVALID_DELAY')
-  }
-
-  t.is(countTimers(), 0)
+  timers.setTimeout(function () {
+    t.pass()
+  }, 0x7fffffff + 1)
 })
 
 test('setTimeout with zero delay', async function (t) {
@@ -212,16 +207,11 @@ test('setTimeout with zero delay', async function (t) {
 })
 
 test('setTimeout with negative delay', async function (t) {
-  t.plan(2)
+  t.plan(1)
 
-  try {
-    timers.setTimeout(function () {}, -50)
-    t.fail('should have failed to set a timeout')
-  } catch (error) {
-    t.is(error.code, 'ERR_INVALID_DELAY')
-  }
-
-  t.is(countTimers(), 0)
+  timers.setTimeout(function () {
+    t.pass()
+  }, -50)
 })
 
 test('setTimeout with an invalid callback', async function (t) {
@@ -263,25 +253,17 @@ test('setTimeout with a string number as delay', async function (t) {
 })
 
 test('setTimeout with a string number plus a character as delay', async function (t) {
-  t.plan(2)
+  t.plan(1)
 
-  try {
-    timers.setTimeout(function () {}, '100a')
-  } catch (error) {
-    t.is(error.code, 'ERR_INVALID_DELAY')
-  }
-
-  t.is(countTimers(), 0)
+  timers.setTimeout(function () {
+    t.pass()
+  }, '100a')
 })
 
 test('setTimeout with an invalid string as delay', async function (t) {
-  t.plan(2)
+  t.plan(1)
 
-  try {
-    timers.setTimeout(function () {}, 'abcd')
-  } catch (error) {
-    t.is(error.code, 'ERR_INVALID_DELAY')
-  }
-
-  t.is(countTimers(), 0)
+  timers.setTimeout(function () {
+    t.pass()
+  }, 'abcd')
 })
