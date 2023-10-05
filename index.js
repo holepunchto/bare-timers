@@ -143,10 +143,13 @@ let nextExpiry = 0
 let ticks = 1
 let triggered = 0
 let paused = false
+let destroyed = false
 let tracing = false
 
 function destroy () {
+  if (destroyed) return
   binding.destroy(handle)
+  destroyed = true
 }
 
 function pause () {
@@ -180,12 +183,12 @@ function tick () {
 }
 
 function cancelTimer () {
-  if (paused || ticks === triggered) return
+  if (paused || destroyed || ticks === triggered) return
   binding.stop(handle)
 }
 
 function updateTimer (ms) {
-  if (paused || ticks === triggered) return
+  if (paused || destroyed || ticks === triggered) return
   binding.start(handle, ms)
 }
 
