@@ -132,7 +132,7 @@ const view = new Int32Array(handle.buffer, handle.byteOffset + binding.offsetofT
 
 binding.init(handle, ontimer)
 
-process
+Bare
   .on('suspend', pause)
   .on('resume', resume)
   .on('exit', destroy)

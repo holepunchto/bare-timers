@@ -175,7 +175,7 @@ test('error inside of setTimeout', async function (t) {
   timers.setTimeout(() => t.pass(), 10)
   timers.setImmediate(() => t.pass())
 
-  process.once('uncaughtException', function (err) {
+  Bare.once('uncaughtException', function (err) {
     t.is(err, error)
 
     timers.setTimeout(() => {
