@@ -1,3 +1,4 @@
+/* global Bare */
 const test = require('brittle')
 const timers = require('..')
 const { isAround, countTimers } = require('./helpers')
