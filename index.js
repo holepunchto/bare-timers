@@ -133,9 +133,27 @@ const view = new Int32Array(handle.buffer, handle.byteOffset + binding.offsetofT
 binding.init(handle, ontimer)
 
 process
-  .on('suspend', pause)
-  .on('resume', resume)
-  .on('exit', destroy)
+  .on('suspend', onsuspend)
+  .on('idle', onidle)
+  .on('resume', onresume)
+  .on('exit', onexit)
+
+function onsuspend () {
+  if (refs) binding.unref(handle)
+}
+
+function onidle () {
+  pause()
+}
+
+function onresume () {
+  if (refs) binding.ref(handle)
+  resume()
+}
+
+function onexit () {
+  destroy()
+}
 
 let refs = 0
 let garbage = 0
