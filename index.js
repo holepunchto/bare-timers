@@ -14,8 +14,6 @@ class Timer {
     this._next = this
     this._refed = true
 
-    this.stack = tracing ? new Error().stack : null
-
     incRef()
   }
 
@@ -128,10 +126,8 @@ class TimerList {
 const timers = new Map()
 const queue = new Heap(cmp)
 const immediates = new TimerList(0)
-const handle = Buffer.alloc(binding.sizeofTimer)
-const view = new Int32Array(handle.buffer, handle.byteOffset + binding.offsetofTimerNextDelay, 1)
 
-binding.init(handle, ontimer)
+const handle = binding.init(ontimer, onimmediate)
 
 Bare
   .on('idle', pause)
@@ -145,7 +141,6 @@ let ticks = 1
 let triggered = 0
 let paused = false
 let destroyed = false
-let tracing = false
 
 function destroy () {
   if (destroyed) return
@@ -173,10 +168,6 @@ function decRef () {
   if (--refs === 0) binding.unref(handle)
 }
 
-function trace (val) {
-  tracing = !!val
-}
-
 function tick () {
   // just a wrapping number between 0-255 for checking re-entry and if we need
   // to wakeup the timer in c
@@ -196,10 +187,7 @@ function updateTimer (ms) {
 function ontimer () {
   const now = Date.now()
 
-  if (now < nextExpiry) {
-    view[0] = (nextExpiry - now)
-    return
-  }
+  if (now < nextExpiry) return (nextExpiry - now)
 
   let next
   let uncaughtError = null
@@ -232,6 +220,38 @@ function ontimer () {
     }
   }
 
+  tick()
+
+  if (garbage >= 8 && 2 * garbage >= queue.length) {
+    // reset the heap if too much garbage exists...
+    queue.filter(alive)
+    garbage = 0
+  }
+
+  let nextDelay = -1
+
+  if (next !== undefined) {
+    nextDelay = Math.max(next.expiry - now, 0)
+    nextExpiry = next.expiry
+  } else {
+    nextExpiry = 0
+  }
+
+  if (uncaughtError !== null) {
+    nextExpiry = now
+    throw uncaughtError
+  }
+
+  return nextDelay
+}
+
+function onimmediate () {
+  const now = Date.now()
+
+  let uncaughtError = null
+
+  triggered = tick()
+
   while (immediates.tail !== null && immediates.tail._sync !== ticks && uncaughtError === null) {
     try {
       immediates.shift()._run(now)
@@ -243,27 +263,7 @@ function ontimer () {
 
   tick()
 
-  if (garbage >= 8 && 2 * garbage >= queue.length) {
-    // reset the heap if too much garbage exists...
-    queue.filter(alive)
-    garbage = 0
-  }
-
-  if (immediates.tail !== null) {
-    view[0] = 0
-    nextExpiry = now
-  } else if (next !== undefined) {
-    view[0] = Math.max(next.expiry - now, 0)
-    nextExpiry = next.expiry
-  } else {
-    view[0] = -1
-    nextExpiry = 0
-  }
-
   if (uncaughtError !== null) {
-    // retrigger asap, safest choice (and the user should have crashed anyway)
-    view[0] = 0
-    nextExpiry = now
     throw uncaughtError
   }
 }
@@ -295,7 +295,6 @@ function maybeUpdateTimer () {
   }
 
   if (updated === false) return
-  if (immediates.tail !== null) return
 
   if (queue.length === 0) {
     nextExpiry = 0
@@ -369,15 +368,9 @@ function clearInterval (timer) {
 function setImmediate (fn, ...args) {
   if (typeof fn !== 'function') throw typeError('Callback must be a function', 'ERR_INVALID_CALLBACK')
 
-  const now = Date.now()
-  const timer = immediates.queue(false, now, fn, args)
+  binding.immediate(handle)
 
-  if (now < nextExpiry || nextExpiry === 0) {
-    nextExpiry = now
-    updateTimer(0)
-  }
-
-  return timer
+  return immediates.queue(false, Date.now(), fn, args)
 }
 
 function clearImmediate (timer) {
@@ -416,7 +409,6 @@ function * iterator () {
 }
 
 module.exports = {
-  trace,
   setTimeout,
   clearTimeout,
   setInterval,

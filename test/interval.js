@@ -1,46 +1,32 @@
 const test = require('brittle')
 const timers = require('..')
-const { isAround, countTimers, sleep } = require('./helpers')
+const { isAround, sleep } = require('./helpers')
 
 test('setInterval', async function (t) {
-  t.plan(5)
+  t.plan(1)
 
   const started = Date.now()
 
-  t.is(countTimers(), 0, 'count before setting an interval')
-
   const id = timers.setInterval(function () {
     t.ok(isAround(Date.now() - started, 50), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
-
-    t.is(countTimers(), 1, 'count inside of interval')
     timers.clearInterval(id)
-    t.is(countTimers(), 0, 'count after clearing interval')
   }, 50)
-
-  t.is(countTimers(), 1, 'count after setting an interval')
 })
 
 test('setInterval multiple cycles', async function (t) {
-  t.plan(9)
+  t.plan(3)
 
   let started = Date.now()
   let intervalCount = 0
-
-  t.is(countTimers(), 0, 'count before setting an interval')
 
   const id = timers.setInterval(function () {
     t.ok(isAround(Date.now() - started, 50), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
     started = Date.now()
 
-    t.is(countTimers(), 1, 'count inside of interval')
-
     if (++intervalCount === 3) {
       timers.clearInterval(id)
-      t.is(countTimers(), 0, 'count after clearing interval')
     }
   }, 50)
-
-  t.is(countTimers(), 1, 'count after setting an interval')
 })
 
 test('setInterval timer active', async function (t) {
@@ -56,76 +42,59 @@ test('setInterval timer active', async function (t) {
 })
 
 test.skip('interrupt setInterval with CPU spin', async function (t) {
-  t.plan(2)
+  t.plan(1)
 
   const started = Date.now()
 
   const id = timers.setInterval(function () {
     t.ok(isAround(Date.now() - started, 75), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
     timers.clearInterval(id)
-    t.is(countTimers(), 0)
   }, 50)
 
   while (Date.now() - started < 75) {} // eslint-disable-line no-empty
 })
 
 test.skip('interrupt setInterval with Atomics.wait', async function (t) {
-  t.plan(2)
+  t.plan(1)
 
   const started = Date.now()
 
   const id = timers.setInterval(function () {
     t.ok(isAround(Date.now() - started, 75), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
     timers.clearInterval(id)
-    t.is(countTimers(), 0)
   }, 50)
 
   sleep(75)
 })
 
 test('multiple setInterval', async function (t) {
-  t.plan(10)
+  t.plan(4)
 
   const started = Date.now()
-
-  t.is(countTimers(), 0)
 
   const id1 = timers.setInterval(function () {
     t.ok(isAround(Date.now() - started, 20), '1st timer took ' + Math.abs(Date.now() - started) + 'ms')
     timers.clearInterval(id1)
   }, 20)
 
-  t.is(countTimers(), 1)
-
   const id2 = timers.setInterval(function () {
     t.ok(isAround(Date.now() - started, 50), '2nd timer took ' + Math.abs(Date.now() - started) + 'ms')
     timers.clearInterval(id2)
-    t.is(countTimers(), 0)
   }, 50)
-
-  t.is(countTimers(), 2)
 
   const id3 = timers.setInterval(function () {
     t.ok(isAround(Date.now() - started, 20), '3rd timer took ' + Math.abs(Date.now() - started) + 'ms')
     timers.clearInterval(id3)
   }, 20)
 
-  t.is(countTimers(), 3)
-
   const id4 = timers.setInterval(() => {
     t.ok(isAround(Date.now() - started, 0), '4th timer took ' + Math.abs(Date.now() - started) + 'ms')
     timers.clearInterval(id4)
   }, 1)
-
-  t.is(countTimers(), 4)
 })
 
 test('clearInterval', async function (t) {
-  t.plan(2)
-
   const id = timers.setInterval(() => t.fail('interval should not be called'), 20)
 
-  t.is(countTimers(), 1)
   timers.clearInterval(id)
-  t.is(countTimers(), 0)
 })
