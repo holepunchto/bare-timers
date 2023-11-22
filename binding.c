@@ -217,18 +217,6 @@ bare_timer_pause (js_env_t *env, js_callback_info_t *info) {
     return NULL;
   }
 
-  err = uv_check_stop(&self->check);
-  if (err < 0) {
-    js_throw_error(env, uv_err_name(err), uv_strerror(err));
-    return NULL;
-  }
-
-  err = uv_idle_stop(&self->idle);
-  if (err < 0) {
-    js_throw_error(env, uv_err_name(err), uv_strerror(err));
-    return NULL;
-  }
-
   return NULL;
 }
 
@@ -268,20 +256,6 @@ bare_timer_resume (js_env_t *env, js_callback_info_t *info) {
   if (err < 0) {
     js_throw_error(env, uv_err_name(err), uv_strerror(err));
     return NULL;
-  }
-
-  if (ms == 0) {
-    err = uv_check_start(&self->check, on_check);
-    if (err < 0) {
-      js_throw_error(env, uv_err_name(err), uv_strerror(err));
-      return NULL;
-    }
-
-    err = uv_idle_start(&self->idle, on_idle);
-    if (err < 0) {
-      js_throw_error(env, uv_err_name(err), uv_strerror(err));
-      return NULL;
-    }
   }
 
   return NULL;
