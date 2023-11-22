@@ -70,12 +70,20 @@ on_timer (uv_timer_t *handle) {
   err = js_get_reference_value(env, self->on_timer, &callback);
   assert(err == 0);
 
-  js_value_t *next_delay;
-  err = js_call_function(env, ctx, callback, 0, NULL, &next_delay);
-  if (err < 0) self->next_delay = 0;
+  self->next_delay = -1; // Reset delay
+
+  js_value_t *result;
+  err = js_call_function(env, ctx, callback, 0, NULL, &result);
+
+  if (err < 0) self->next_delay = 0; // Retrigger on next tick
   else {
-    err = js_get_value_int32(env, next_delay, &self->next_delay);
+    int32_t next_delay;
+    err = js_get_value_int32(env, result, &next_delay);
     assert(err == 0);
+
+    if (next_delay < self->next_delay || self->next_delay == -1) {
+      self->next_delay = next_delay;
+    }
   }
 
   if (self->next_delay > -1) {
@@ -326,6 +334,8 @@ bare_timer_start (js_env_t *env, js_callback_info_t *info) {
   int32_t ms;
   err = js_get_value_int32(env, argv[1], &ms);
   assert(err == 0);
+
+  self->next_delay = ms;
 
   err = uv_timer_start(&self->timer, on_timer, ms, 0);
   if (err < 0) {

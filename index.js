@@ -228,12 +228,13 @@ function ontimer () {
     garbage = 0
   }
 
-  let nextDelay = -1
+  let nextDelay
 
   if (next !== undefined) {
     nextDelay = Math.max(next.expiry - now, 0)
     nextExpiry = next.expiry
   } else {
+    nextDelay = -1
     nextExpiry = 0
   }
 
