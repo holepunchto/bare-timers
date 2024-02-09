@@ -10,9 +10,7 @@
     "CMakeLists.txt",
     "prebuilds"
   ],
-  "addon": {
-    "target": "bare_timers"
-  },
+  "addon": true,
   "scripts": {
     "test": "standard && bare test/all.js"
   },
