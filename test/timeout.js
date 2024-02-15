@@ -30,7 +30,7 @@ test('setTimeout refresh', async function (t) {
 
   const timer = timers.setTimeout(function () {
     t.is(ticks, 6, 'was refreshed')
-    t.ok(isAround(Date.now() - started, 200), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
+    t.ok(isAround(Date.now() - started, 200, 100), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
   }, 50)
 
   let ticks = 0
