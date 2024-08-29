@@ -413,9 +413,9 @@ bare_timers_exports (js_env_t *env, js_value_t *exports) {
   { \
     js_value_t *val; \
     err = js_create_function(env, name, -1, fn, NULL, &val); \
-    assert(er == 0); \
+    assert(err == 0); \
     js_set_named_property(env, exports, name, val); \
-    assert(er == 0); \
+    assert(err == 0); \
   }
 
   V("init", bare_timers_init)
