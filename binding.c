@@ -8,18 +8,21 @@ typedef struct {
   uv_timer_t timer;
   uv_check_t check;
   uv_idle_t idle;
+
   int active_handles;
+
   js_env_t *env;
   js_ref_t *on_timer;
   js_ref_t *on_check;
+
   int32_t next_delay;
 } bare_timer_t;
 
 static void
-on_idle (uv_idle_t *handle) {}
+bare_timers__on_idle (uv_idle_t *handle) {}
 
 static void
-on_check (uv_check_t *handle) {
+bare_timers__on_check (uv_check_t *handle) {
   int err;
 
   bare_timer_t *self = (bare_timer_t *) handle->data;
@@ -51,7 +54,7 @@ on_check (uv_check_t *handle) {
 }
 
 static void
-on_timer (uv_timer_t *handle) {
+bare_timers__on_timer (uv_timer_t *handle) {
   int err;
 
   bare_timer_t *self = (bare_timer_t *) handle->data;
@@ -87,7 +90,7 @@ on_timer (uv_timer_t *handle) {
   }
 
   if (self->next_delay > -1) {
-    err = uv_timer_start(handle, on_timer, self->next_delay, 0);
+    err = uv_timer_start(handle, bare_timers__on_timer, self->next_delay, 0);
     assert(err == 0);
   }
 
@@ -96,7 +99,7 @@ on_timer (uv_timer_t *handle) {
 }
 
 static void
-on_close (uv_handle_t *handle) {
+bare_timers__on_close (uv_handle_t *handle) {
   int err;
 
   bare_timer_t *self = (bare_timer_t *) handle->data;
@@ -111,7 +114,7 @@ on_close (uv_handle_t *handle) {
 }
 
 static js_value_t *
-bare_timer_init (js_env_t *env, js_callback_info_t *info) {
+bare_timers_init (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 2;
@@ -177,7 +180,7 @@ bare_timer_init (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timer_destroy (js_env_t *env, js_callback_info_t *info) {
+bare_timers_destroy (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -192,15 +195,15 @@ bare_timer_destroy (js_env_t *env, js_callback_info_t *info) {
   err = js_get_arraybuffer_info(env, argv[0], (void **) &self, NULL);
   assert(err == 0);
 
-  uv_close((uv_handle_t *) &self->timer, on_close);
-  uv_close((uv_handle_t *) &self->check, on_close);
-  uv_close((uv_handle_t *) &self->idle, on_close);
+  uv_close((uv_handle_t *) &self->timer, bare_timers__on_close);
+  uv_close((uv_handle_t *) &self->check, bare_timers__on_close);
+  uv_close((uv_handle_t *) &self->idle, bare_timers__on_close);
 
   return NULL;
 }
 
 static js_value_t *
-bare_timer_pause (js_env_t *env, js_callback_info_t *info) {
+bare_timers_pause (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -229,7 +232,7 @@ bare_timer_pause (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timer_resume (js_env_t *env, js_callback_info_t *info) {
+bare_timers_resume (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 3;
@@ -260,7 +263,7 @@ bare_timer_resume (js_env_t *env, js_callback_info_t *info) {
 
   self->next_delay = 0;
 
-  err = uv_timer_start(&self->timer, on_timer, ms, 0);
+  err = uv_timer_start(&self->timer, bare_timers__on_timer, ms, 0);
   if (err < 0) {
     js_throw_error(env, uv_err_name(err), uv_strerror(err));
     return NULL;
@@ -270,7 +273,7 @@ bare_timer_resume (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timer_ref (js_env_t *env, js_callback_info_t *info) {
+bare_timers_ref (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -293,7 +296,7 @@ bare_timer_ref (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timer_unref (js_env_t *env, js_callback_info_t *info) {
+bare_timers_unref (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -316,7 +319,7 @@ bare_timer_unref (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timer_start (js_env_t *env, js_callback_info_t *info) {
+bare_timers_start (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 2;
@@ -337,7 +340,7 @@ bare_timer_start (js_env_t *env, js_callback_info_t *info) {
 
   self->next_delay = ms;
 
-  err = uv_timer_start(&self->timer, on_timer, ms, 0);
+  err = uv_timer_start(&self->timer, bare_timers__on_timer, ms, 0);
   if (err < 0) {
     js_throw_error(env, uv_err_name(err), uv_strerror(err));
     return NULL;
@@ -347,7 +350,7 @@ bare_timer_start (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timer_stop (js_env_t *env, js_callback_info_t *info) {
+bare_timers_stop (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -372,7 +375,7 @@ bare_timer_stop (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timer_immediate (js_env_t *env, js_callback_info_t *info) {
+bare_timers_immediate (js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -387,13 +390,13 @@ bare_timer_immediate (js_env_t *env, js_callback_info_t *info) {
   err = js_get_arraybuffer_info(env, argv[0], (void **) &self, NULL);
   assert(err == 0);
 
-  err = uv_check_start(&self->check, on_check);
+  err = uv_check_start(&self->check, bare_timers__on_check);
   if (err < 0) {
     js_throw_error(env, uv_err_name(err), uv_strerror(err));
     return NULL;
   }
 
-  err = uv_idle_start(&self->idle, on_idle);
+  err = uv_idle_start(&self->idle, bare_timers__on_idle);
   if (err < 0) {
     js_throw_error(env, uv_err_name(err), uv_strerror(err));
     return NULL;
@@ -403,26 +406,30 @@ bare_timer_immediate (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-init (js_env_t *env, js_value_t *exports) {
+bare_timers_exports (js_env_t *env, js_value_t *exports) {
+  int err;
+
 #define V(name, fn) \
   { \
     js_value_t *val; \
-    js_create_function(env, name, -1, fn, NULL, &val); \
+    err = js_create_function(env, name, -1, fn, NULL, &val); \
+    assert(er == 0); \
     js_set_named_property(env, exports, name, val); \
+    assert(er == 0); \
   }
 
-  V("init", bare_timer_init)
-  V("destroy", bare_timer_destroy)
-  V("ref", bare_timer_ref)
-  V("unref", bare_timer_unref)
-  V("start", bare_timer_start)
-  V("stop", bare_timer_stop)
-  V("immediate", bare_timer_immediate)
-  V("pause", bare_timer_pause)
-  V("resume", bare_timer_resume)
+  V("init", bare_timers_init)
+  V("destroy", bare_timers_destroy)
+  V("ref", bare_timers_ref)
+  V("unref", bare_timers_unref)
+  V("start", bare_timers_start)
+  V("stop", bare_timers_stop)
+  V("immediate", bare_timers_immediate)
+  V("pause", bare_timers_pause)
+  V("resume", bare_timers_resume)
 #undef V
 
   return exports;
 }
 
-BARE_MODULE(bare_timers, init)
+BARE_MODULE(bare_timers, bare_timers_exports)
