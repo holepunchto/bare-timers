@@ -43,12 +43,13 @@ class Timer {
   }
 
   refresh () {
-    if (this._list === null) return
+    if (this._list === null) return this
     this._list.clear(this)
     this._expiry = Date.now() + this._list.ms
     this._list.push(this)
 
     maybeUpdateTimer()
+    return this
   }
 
   hasRef () {
@@ -56,15 +57,17 @@ class Timer {
   }
 
   unref () {
-    if (this._refed === false) return
+    if (this._refed === false) return this
     this._refed = false
     decRef()
+    return this
   }
 
   ref () {
-    if (this._refed === true) return
+    if (this._refed === true) return this
     this._refed = true
     incRef()
+    return this
   }
 }
 
