@@ -125,3 +125,15 @@ test('setImmediate following setTimeout', async function (t) {
 
   clearTimeout(timer)
 })
+
+test('setImmediate that triggers setTimeout', async function (t) {
+  t.plan(2)
+
+  timers.setImmediate(() => {
+    t.pass('immediate triggered')
+
+    timers.setTimeout(() => {
+      t.pass('timeout triggered')
+    }, 20)
+  })
+})
