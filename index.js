@@ -251,6 +251,7 @@ function ontimer () {
 
 function onimmediate () {
   const now = Date.now()
+  const timerRunning = queue.length > 0
 
   let uncaughtError = null
 
@@ -266,6 +267,11 @@ function onimmediate () {
   }
 
   tick()
+
+  // some reentry wants the timers to start but they are not, lets start them
+  if (!timerRunning && queue.length > 0) {
+    updateTimer(queue.peek().ms)
+  }
 
   if (uncaughtError !== null) {
     throw uncaughtError
