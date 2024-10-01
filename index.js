@@ -270,7 +270,9 @@ function onimmediate () {
 
   // some reentry wants the timers to start but they are not, lets start them
   if (!timerRunning && queue.length > 0) {
-    updateTimer(queue.peek().ms)
+    const l = queue.peek()
+    nextExpiry = l.expiry
+    updateTimer(l.ms)
   }
 
   if (uncaughtError !== null) {
