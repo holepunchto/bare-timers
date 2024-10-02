@@ -26,7 +26,7 @@ class Timer {
       this._expiry = now + this._list.ms
       this._list.push(this)
     } else {
-      if (this._refed === true) decRef()
+      if (this._refed === true) this.unref()
       this._list = null
     }
     // apply at the bottom to avoid re-entries...
@@ -36,7 +36,7 @@ class Timer {
   _clear () {
     if (this._list === null) return
     this._list.clear(this)
-    if (this._refed === true) decRef()
+    if (this._refed === true) this.unref()
     this._list = null
 
     maybeUpdateTimer()
