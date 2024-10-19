@@ -15,7 +15,7 @@ typedef struct {
   js_ref_t *on_timer;
   js_ref_t *on_check;
 
-  int32_t next_delay;
+  int64_t next_delay;
 } bare_timer_t;
 
 static void
@@ -80,8 +80,8 @@ bare_timers__on_timer (uv_timer_t *handle) {
 
   if (err < 0) self->next_delay = 0; // Retrigger on next tick
   else {
-    int32_t next_delay;
-    err = js_get_value_int32(env, result, &next_delay);
+    int64_t next_delay;
+    err = js_get_value_int64(env, result, &next_delay);
     assert(err == 0);
 
     if (next_delay < self->next_delay || self->next_delay == -1) {
@@ -247,8 +247,8 @@ bare_timers_resume (js_env_t *env, js_callback_info_t *info) {
   err = js_get_arraybuffer_info(env, argv[0], (void **) &self, NULL);
   assert(err == 0);
 
-  int32_t ms;
-  err = js_get_value_int32(env, argv[1], &ms);
+  int64_t ms;
+  err = js_get_value_int64(env, argv[1], &ms);
   assert(err == 0);
 
   uint32_t ref;
@@ -334,8 +334,8 @@ bare_timers_start (js_env_t *env, js_callback_info_t *info) {
   err = js_get_arraybuffer_info(env, argv[0], (void **) &self, NULL);
   assert(err == 0);
 
-  int32_t ms;
-  err = js_get_value_int32(env, argv[1], &ms);
+  int64_t ms;
+  err = js_get_value_int64(env, argv[1], &ms);
   assert(err == 0);
 
   self->next_delay = ms;
