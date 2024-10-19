@@ -327,7 +327,8 @@ function deleteTimerList (list) {
 
 function queueTimer (ms, repeat, fn, args) {
   if (typeof fn !== 'function') throw typeError('Callback must be a function', 'ERR_INVALID_CALLBACK')
-  if (ms < 1 || ms > 0x7fffffff || Number.isNaN(ms)) ms = 1
+
+  if (ms < 1 || ms > Number.MAX_SAFE_INTEGER || Number.isNaN(ms)) ms = 1
 
   const now = Date.now()
 
