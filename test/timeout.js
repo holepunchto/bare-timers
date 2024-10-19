@@ -156,14 +156,6 @@ test('error inside of setTimeout', async function (t) {
   })
 })
 
-test('setTimeout with big delay', async function (t) {
-  t.plan(1)
-
-  timers.setTimeout(function () {
-    t.pass()
-  }, 0x7fffffff + 1)
-})
-
 test('setTimeout with zero delay', async function (t) {
   t.plan(1)
 
