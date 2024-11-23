@@ -371,23 +371,23 @@ function clearTimer(timer) {
   garbage++
 }
 
-function setTimeout(fn, ms, ...args) {
+exports.setTimeout = function setTimeout(fn, ms, ...args) {
   return queueTimer(Math.floor(ms), false, fn, [...args])
 }
 
-function clearTimeout(timer) {
+exports.clearTimeout = function clearTimeout(timer) {
   if (timer && timer._list !== null) clearTimer(timer)
 }
 
-function setInterval(fn, ms, ...args) {
+exports.setInterval = function setInterval(fn, ms, ...args) {
   return queueTimer(Math.floor(ms), true, fn, [...args])
 }
 
-function clearInterval(timer) {
+exports.clearInterval = function clearInterval(timer) {
   if (timer && timer._list !== null) clearTimer(timer)
 }
 
-function setImmediate(fn, ...args) {
+exports.setImmediate = function setImmediate(fn, ...args) {
   if (typeof fn !== 'function')
     throw typeError('Callback must be a function', 'ERR_INVALID_CALLBACK')
 
@@ -396,7 +396,7 @@ function setImmediate(fn, ...args) {
   return immediates.queue(false, Date.now(), fn, args)
 }
 
-function clearImmediate(timer) {
+exports.clearImmediate = function clearImmediate(timer) {
   if (timer && timer._list !== null) clearTimer(timer)
 }
 
@@ -417,29 +417,4 @@ function typeError(message, code) {
   const error = new TypeError(message)
   error.code = code
   return error
-}
-
-function* iterator() {
-  if (immediates.tail !== null) {
-    yield immediates.tail
-    for (let t = immediates.tail._next; t !== immediates.tail; t = t._next)
-      yield t
-  }
-  for (const list of timers.values()) {
-    if (list.tail === null) continue
-    yield list.tail
-    for (let t = list.tail._next; t !== list.tail; t = t._next) yield t
-  }
-}
-
-module.exports = {
-  setTimeout,
-  clearTimeout,
-  setInterval,
-  clearInterval,
-  setImmediate,
-  clearImmediate,
-  [Symbol.iterator]() {
-    return iterator()
-  }
 }

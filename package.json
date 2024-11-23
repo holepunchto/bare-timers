@@ -2,9 +2,14 @@
   "name": "bare-timers",
   "version": "2.1.0",
   "description": "Native timers for Javascript",
-  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package": "./package.json",
+    "./global": "./global.js"
+  },
   "files": [
     "index.js",
+    "global.js",
     "binding.c",
     "binding.js",
     "CMakeLists.txt",
