@@ -6,7 +6,7 @@ test('unref and a timer stays alive', async function (t) {
 
   const unreffed = timers.setTimeout(run, 10)
 
-  function run () {
+  function run() {
     unreffed.unref()
     timers.setTimeout(function () {
       t.pass('timer triggered')
@@ -20,7 +20,7 @@ test('ref in callbacks are noops', async function (t) {
 
   const timer = timers.setTimeout(run, 10)
 
-  function run () {
+  function run() {
     timer.ref()
     const other = timers.setTimeout(() => t.fail('should not run'), 10_000)
     other.unref()

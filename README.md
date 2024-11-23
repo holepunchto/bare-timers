@@ -8,7 +8,7 @@ npm i bare-timers
 
 ## Usage
 
-``` js
+```js
 const { setTimeout, clearTimeout } = require('bare-timers')
 ```
 

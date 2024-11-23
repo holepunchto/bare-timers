@@ -3,7 +3,7 @@ const Heap = require('tiny-binary-heap')
 const binding = require('./binding')
 
 class Timer {
-  constructor (list, expiry, repeat, fn, args) {
+  constructor(list, expiry, repeat, fn, args) {
     this._list = list
     this._sync = ticks
     this._expiry = expiry
@@ -17,11 +17,14 @@ class Timer {
     incRef()
   }
 
-  get active () {
-    return this._prev !== this._next || (this._list !== null && this._list.tail === this)
+  get active() {
+    return (
+      this._prev !== this._next ||
+      (this._list !== null && this._list.tail === this)
+    )
   }
 
-  _run (now) {
+  _run(now) {
     if (this._repeat === true) {
       this._expiry = now + this._list.ms
       this._list.push(this)
@@ -33,7 +36,7 @@ class Timer {
     this._fn.apply(null, this._args)
   }
 
-  _clear () {
+  _clear() {
     if (this._list === null) return
     this._list.clear(this)
     if (this._refed === true) decRef()
@@ -42,7 +45,7 @@ class Timer {
     maybeUpdateTimer()
   }
 
-  refresh () {
+  refresh() {
     if (this._list === null) return this
     this._list.clear(this)
     this._expiry = Date.now() + this._list.ms
@@ -52,18 +55,18 @@ class Timer {
     return this
   }
 
-  hasRef () {
+  hasRef() {
     return this._refed
   }
 
-  unref () {
+  unref() {
     if (this._refed === false || this._list === null) return this
     this._refed = false
     decRef()
     return this
   }
 
-  ref () {
+  ref() {
     if (this._refed === true || this._list === null) return this
     this._refed = true
     incRef()
@@ -72,23 +75,23 @@ class Timer {
 }
 
 class TimerList {
-  constructor (ms) {
+  constructor(ms) {
     this.ms = ms
     this.tail = null
     this.expiry = 0
   }
 
-  queue (repeat, now, fn, args) {
+  queue(repeat, now, fn, args) {
     const expiry = now + this.ms
     const timer = new Timer(this, expiry, repeat, fn, args)
     return this.push(timer)
   }
 
-  updateExpiry () {
+  updateExpiry() {
     if (this.tail !== null) this.expiry = this.tail._expiry
   }
 
-  push (timer) {
+  push(timer) {
     if (this.tail === null) {
       this.tail = timer
       return timer
@@ -105,13 +108,13 @@ class TimerList {
     return timer
   }
 
-  shift () {
+  shift() {
     const tail = this.tail
     if (tail !== null) this.clear(tail)
     return tail
   }
 
-  clear (timer) {
+  clear(timer) {
     const prev = timer._prev
     const next = timer._next
 
@@ -132,10 +135,7 @@ const immediates = new TimerList(0)
 
 const handle = binding.init(ontimer, onimmediate)
 
-Bare
-  .on('idle', pause)
-  .on('resume', resume)
-  .on('exit', destroy)
+Bare.on('idle', pause).on('resume', resume).on('exit', destroy)
 
 let refs = 0
 let garbage = 0
@@ -145,59 +145,63 @@ let triggered = 0
 let paused = false
 let destroyed = false
 
-function destroy () {
+function destroy() {
   if (destroyed) return
   binding.destroy(handle)
   destroyed = true
 }
 
-function pause () {
+function pause() {
   if (paused) return
   binding.pause(handle)
   paused = true
 }
 
-function resume () {
+function resume() {
   if (!paused) return
   binding.resume(handle, Math.max(nextExpiry - Date.now(), 0), refs)
   paused = false
 }
 
-function incRef () {
+function incRef() {
   if (refs++ === 0) binding.ref(handle)
 }
 
-function decRef () {
+function decRef() {
   if (--refs === 0) binding.unref(handle)
 }
 
-function tick () {
+function tick() {
   // just a wrapping number between 0-255 for checking re-entry and if we need
   // to wakeup the timer in c
   return (ticks = (ticks + 1) & 0xff)
 }
 
-function cancelTimer () {
+function cancelTimer() {
   if (paused || destroyed || ticks === triggered) return
   binding.stop(handle)
 }
 
-function updateTimer (ms) {
+function updateTimer(ms) {
   if (paused || destroyed || ticks === triggered) return
   binding.start(handle, ms)
 }
 
-function ontimer () {
+function ontimer() {
   const now = Date.now()
 
-  if (now < nextExpiry) return (nextExpiry - now)
+  if (now < nextExpiry) return nextExpiry - now
 
   let next
   let uncaughtError = null
 
   triggered = tick()
 
-  while ((next = queue.peek()) !== undefined && next.expiry <= now && uncaughtError === null) {
+  while (
+    (next = queue.peek()) !== undefined &&
+    next.expiry <= now &&
+    uncaughtError === null
+  ) {
     let ran = false
 
     // check if the next is expiring AND that it was not added immediately (ie setImmediate loop)
@@ -249,7 +253,7 @@ function ontimer () {
   return nextDelay
 }
 
-function onimmediate () {
+function onimmediate() {
   const now = Date.now()
   const timerRunning = queue.length > 0
 
@@ -257,7 +261,11 @@ function onimmediate () {
 
   triggered = tick()
 
-  while (immediates.tail !== null && immediates.tail._sync !== ticks && uncaughtError === null) {
+  while (
+    immediates.tail !== null &&
+    immediates.tail._sync !== ticks &&
+    uncaughtError === null
+  ) {
     try {
       immediates.shift()._run(now)
     } catch (err) {
@@ -280,7 +288,7 @@ function onimmediate () {
   }
 }
 
-function maybeUpdateTimer () {
+function maybeUpdateTimer() {
   if (ticks === triggered) return
 
   let updated = false
@@ -320,13 +328,14 @@ function maybeUpdateTimer () {
   }
 }
 
-function deleteTimerList (list) {
+function deleteTimerList(list) {
   list.expiry = 0
   timers.delete(list.ms)
 }
 
-function queueTimer (ms, repeat, fn, args) {
-  if (typeof fn !== 'function') throw typeError('Callback must be a function', 'ERR_INVALID_CALLBACK')
+function queueTimer(ms, repeat, fn, args) {
+  if (typeof fn !== 'function')
+    throw typeError('Callback must be a function', 'ERR_INVALID_CALLBACK')
 
   if (ms < 1 || ms > Number.MAX_SAFE_INTEGER || Number.isNaN(ms)) ms = 1
 
@@ -355,47 +364,48 @@ function queueTimer (ms, repeat, fn, args) {
   return timer
 }
 
-function clearTimer (timer) {
+function clearTimer(timer) {
   const list = timer._list
   timer._clear()
   if (list.tail !== null || list.expiry === 0) return // anything with expiry 0, is not referenced...
   garbage++
 }
 
-function setTimeout (fn, ms, ...args) {
+function setTimeout(fn, ms, ...args) {
   return queueTimer(Math.floor(ms), false, fn, [...args])
 }
 
-function clearTimeout (timer) {
+function clearTimeout(timer) {
   if (timer && timer._list !== null) clearTimer(timer)
 }
 
-function setInterval (fn, ms, ...args) {
+function setInterval(fn, ms, ...args) {
   return queueTimer(Math.floor(ms), true, fn, [...args])
 }
 
-function clearInterval (timer) {
+function clearInterval(timer) {
   if (timer && timer._list !== null) clearTimer(timer)
 }
 
-function setImmediate (fn, ...args) {
-  if (typeof fn !== 'function') throw typeError('Callback must be a function', 'ERR_INVALID_CALLBACK')
+function setImmediate(fn, ...args) {
+  if (typeof fn !== 'function')
+    throw typeError('Callback must be a function', 'ERR_INVALID_CALLBACK')
 
   binding.immediate(handle)
 
   return immediates.queue(false, Date.now(), fn, args)
 }
 
-function clearImmediate (timer) {
+function clearImmediate(timer) {
   if (timer && timer._list !== null) clearTimer(timer)
 }
 
-function cmp (a, b) {
+function cmp(a, b) {
   const diff = a.expiry - b.expiry
   return diff === 0 ? a.ms - b.ms : diff
 }
 
-function alive (list) {
+function alive(list) {
   if (list.tail === null) {
     deleteTimerList(list)
     return false
@@ -403,16 +413,17 @@ function alive (list) {
   return true
 }
 
-function typeError (message, code) {
+function typeError(message, code) {
   const error = new TypeError(message)
   error.code = code
   return error
 }
 
-function * iterator () {
+function* iterator() {
   if (immediates.tail !== null) {
     yield immediates.tail
-    for (let t = immediates.tail._next; t !== immediates.tail; t = t._next) yield t
+    for (let t = immediates.tail._next; t !== immediates.tail; t = t._next)
+      yield t
   }
   for (const list of timers.values()) {
     if (list.tail === null) continue
@@ -428,7 +439,7 @@ module.exports = {
   clearInterval,
   setImmediate,
   clearImmediate,
-  [Symbol.iterator] () {
+  [Symbol.iterator]() {
     return iterator()
   }
 }

@@ -9,7 +9,10 @@ test('setImmediate', async function (t) {
   const started = Date.now()
 
   timers.setImmediate(function () {
-    t.ok(isAround(Date.now() - started, 0), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
+    t.ok(
+      isAround(Date.now() - started, 0),
+      'timers took ' + Math.abs(Date.now() - started) + 'ms'
+    )
   })
 })
 
@@ -53,12 +56,13 @@ test('order of setImmediate', async function (t) {
 
   for (let i = 0; i < 1000000; i++) {
     timers.setImmediate(function () {
-      if (count++ !== i) t.fail('order is incorrect (' + (count - 1) + '/' + i + ')')
+      if (count++ !== i)
+        t.fail('order is incorrect (' + (count - 1) + '/' + i + ')')
       done()
     })
   }
 
-  function done () {
+  function done() {
     if (count === 1000000) {
       t.pass()
     }
@@ -117,10 +121,10 @@ test('setImmediate with an invalid callback', async function (t) {
 test('setImmediate following setTimeout', async function (t) {
   const timer = timers.setTimeout(() => t.fail(), 30000)
 
-  await new Promise(resolve => timers.setImmediate(resolve))
+  await new Promise((resolve) => timers.setImmediate(resolve))
   t.pass('first done')
 
-  await new Promise(resolve => timers.setImmediate(resolve))
+  await new Promise((resolve) => timers.setImmediate(resolve))
   t.pass('second done')
 
   clearTimeout(timer)
