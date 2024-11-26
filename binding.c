@@ -109,6 +109,9 @@ bare_timers__on_close(uv_handle_t *handle) {
 
   if (--self->active_handles) return;
 
+  err = js_finish_deferred_teardown_callback(self->teardown);
+  assert(err == 0);
+
   err = js_delete_reference(self->env, self->on_timer);
   assert(err == 0);
 
@@ -116,9 +119,6 @@ bare_timers__on_close(uv_handle_t *handle) {
   assert(err == 0);
 
   err = js_delete_reference(self->env, self->ctx);
-  assert(err == 0);
-
-  err = js_finish_deferred_teardown_callback(self->teardown);
   assert(err == 0);
 }
 
@@ -175,9 +175,6 @@ bare_timers_init(js_env_t *env, js_callback_info_t *info) {
   uv_unref((uv_handle_t *) &self->check);
   uv_unref((uv_handle_t *) &self->idle);
 
-  err = js_add_deferred_teardown_callback(env, bare_timers__on_teardown, (void *) self, &self->teardown);
-  assert(err == 0);
-
   err = js_create_reference(env, handle, 1, &self->ctx);
   assert(err == 0);
 
@@ -185,6 +182,9 @@ bare_timers_init(js_env_t *env, js_callback_info_t *info) {
   assert(err == 0);
 
   err = js_create_reference(env, argv[1], 1, &self->on_check);
+  assert(err == 0);
+
+  err = js_add_deferred_teardown_callback(env, bare_timers__on_teardown, (void *) self, &self->teardown);
   assert(err == 0);
 
   return handle;
