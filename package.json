@@ -1,6 +1,6 @@
 {
   "name": "bare-timers",
-  "version": "2.2.0",
+  "version": "3.0.0-0",
   "description": "Native timers for Javascript",
   "exports": {
     ".": "./index.js",
@@ -29,6 +29,9 @@
     "url": "https://github.com/holepunchto/bare-timers/issues"
   },
   "homepage": "https://github.com/holepunchto/bare-timers#readme",
+  "engines": {
+    "bare": ">=1.7.0"
+  },
   "dependencies": {
     "tiny-binary-heap": "^1.1.0"
   },
