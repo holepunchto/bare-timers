@@ -135,7 +135,7 @@ const immediates = new TimerList(0)
 
 const handle = binding.init(ontimer, onimmediate)
 
-Bare.on('idle', pause).on('resume', resume).on('exit', destroy)
+Bare.on('idle', pause).on('resume', resume)
 
 let refs = 0
 let garbage = 0
@@ -143,13 +143,6 @@ let nextExpiry = 0
 let ticks = 1
 let triggered = 0
 let paused = false
-let destroyed = false
-
-function destroy() {
-  if (destroyed) return
-  binding.destroy(handle)
-  destroyed = true
-}
 
 function pause() {
   if (paused) return
@@ -178,12 +171,12 @@ function tick() {
 }
 
 function cancelTimer() {
-  if (paused || destroyed || ticks === triggered) return
+  if (paused || ticks === triggered) return
   binding.stop(handle)
 }
 
 function updateTimer(ms) {
-  if (paused || destroyed || ticks === triggered) return
+  if (paused || ticks === triggered) return
   binding.start(handle, ms)
 }
 

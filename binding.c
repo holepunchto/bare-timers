@@ -12,17 +12,20 @@ typedef struct {
   int active_handles;
 
   js_env_t *env;
+  js_ref_t *ctx;
   js_ref_t *on_timer;
   js_ref_t *on_check;
 
   int64_t next_delay;
+
+  js_deferred_teardown_t *teardown;
 } bare_timer_t;
 
 static void
-bare_timers__on_idle (uv_idle_t *handle) {}
+bare_timers__on_idle(uv_idle_t *handle) {}
 
 static void
-bare_timers__on_check (uv_check_t *handle) {
+bare_timers__on_check(uv_check_t *handle) {
   int err;
 
   bare_timer_t *self = (bare_timer_t *) handle->data;
@@ -54,7 +57,7 @@ bare_timers__on_check (uv_check_t *handle) {
 }
 
 static void
-bare_timers__on_timer (uv_timer_t *handle) {
+bare_timers__on_timer(uv_timer_t *handle) {
   int err;
 
   bare_timer_t *self = (bare_timer_t *) handle->data;
@@ -99,7 +102,7 @@ bare_timers__on_timer (uv_timer_t *handle) {
 }
 
 static void
-bare_timers__on_close (uv_handle_t *handle) {
+bare_timers__on_close(uv_handle_t *handle) {
   int err;
 
   bare_timer_t *self = (bare_timer_t *) handle->data;
@@ -111,10 +114,25 @@ bare_timers__on_close (uv_handle_t *handle) {
 
   err = js_delete_reference(self->env, self->on_check);
   assert(err == 0);
+
+  err = js_delete_reference(self->env, self->ctx);
+  assert(err == 0);
+
+  err = js_finish_deferred_teardown_callback(self->teardown);
+  assert(err == 0);
+}
+
+static void
+bare_timers__on_teardown(js_deferred_teardown_t *handle, void *data) {
+  bare_timer_t *self = (bare_timer_t *) data;
+
+  uv_close((uv_handle_t *) &self->timer, bare_timers__on_close);
+  uv_close((uv_handle_t *) &self->check, bare_timers__on_close);
+  uv_close((uv_handle_t *) &self->idle, bare_timers__on_close);
 }
 
 static js_value_t *
-bare_timers_init (js_env_t *env, js_callback_info_t *info) {
+bare_timers_init(js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 2;
@@ -143,32 +161,25 @@ bare_timers_init (js_env_t *env, js_callback_info_t *info) {
   self->idle.data = self;
 
   err = uv_timer_init(loop, &self->timer);
-  if (err < 0) {
-    js_throw_error(env, uv_err_name(err), uv_strerror(err));
-    return NULL;
-  }
-
-  self->active_handles++;
+  assert(err == 0);
 
   err = uv_check_init(loop, &self->check);
-  if (err < 0) {
-    js_throw_error(env, uv_err_name(err), uv_strerror(err));
-    return NULL;
-  }
-
-  self->active_handles++;
+  assert(err == 0);
 
   err = uv_idle_init(loop, &self->idle);
-  if (err < 0) {
-    js_throw_error(env, uv_err_name(err), uv_strerror(err));
-    return NULL;
-  }
+  assert(err == 0);
 
-  self->active_handles++;
+  self->active_handles = 3;
 
   uv_unref((uv_handle_t *) &self->timer);
   uv_unref((uv_handle_t *) &self->check);
   uv_unref((uv_handle_t *) &self->idle);
+
+  err = js_add_deferred_teardown_callback(env, bare_timers__on_teardown, (void *) self, &self->teardown);
+  assert(err == 0);
+
+  err = js_create_reference(env, handle, 1, &self->ctx);
+  assert(err == 0);
 
   err = js_create_reference(env, argv[0], 1, &self->on_timer);
   assert(err == 0);
@@ -180,30 +191,7 @@ bare_timers_init (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timers_destroy (js_env_t *env, js_callback_info_t *info) {
-  int err;
-
-  size_t argc = 1;
-  js_value_t *argv[1];
-
-  err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
-  assert(err == 0);
-
-  assert(argc == 1);
-
-  bare_timer_t *self;
-  err = js_get_arraybuffer_info(env, argv[0], (void **) &self, NULL);
-  assert(err == 0);
-
-  uv_close((uv_handle_t *) &self->timer, bare_timers__on_close);
-  uv_close((uv_handle_t *) &self->check, bare_timers__on_close);
-  uv_close((uv_handle_t *) &self->idle, bare_timers__on_close);
-
-  return NULL;
-}
-
-static js_value_t *
-bare_timers_pause (js_env_t *env, js_callback_info_t *info) {
+bare_timers_pause(js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -232,7 +220,7 @@ bare_timers_pause (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timers_resume (js_env_t *env, js_callback_info_t *info) {
+bare_timers_resume(js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 3;
@@ -273,7 +261,7 @@ bare_timers_resume (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timers_ref (js_env_t *env, js_callback_info_t *info) {
+bare_timers_ref(js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -296,7 +284,7 @@ bare_timers_ref (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timers_unref (js_env_t *env, js_callback_info_t *info) {
+bare_timers_unref(js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -319,7 +307,7 @@ bare_timers_unref (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timers_start (js_env_t *env, js_callback_info_t *info) {
+bare_timers_start(js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 2;
@@ -350,7 +338,7 @@ bare_timers_start (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timers_stop (js_env_t *env, js_callback_info_t *info) {
+bare_timers_stop(js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -375,7 +363,7 @@ bare_timers_stop (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timers_immediate (js_env_t *env, js_callback_info_t *info) {
+bare_timers_immediate(js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 1;
@@ -406,7 +394,7 @@ bare_timers_immediate (js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timers_exports (js_env_t *env, js_value_t *exports) {
+bare_timers_exports(js_env_t *env, js_value_t *exports) {
   int err;
 
 #define V(name, fn) \
@@ -419,7 +407,6 @@ bare_timers_exports (js_env_t *env, js_value_t *exports) {
   }
 
   V("init", bare_timers_init)
-  V("destroy", bare_timers_destroy)
   V("ref", bare_timers_ref)
   V("unref", bare_timers_unref)
   V("start", bare_timers_start)
