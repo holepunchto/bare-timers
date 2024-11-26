@@ -1,6 +1,6 @@
 {
   "name": "bare-timers",
-  "version": "3.0.0-0",
+  "version": "3.0.0",
   "description": "Native timers for Javascript",
   "exports": {
     ".": "./index.js",
