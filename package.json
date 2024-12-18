@@ -3,12 +3,16 @@
   "version": "3.0.0",
   "description": "Native timers for Javascript",
   "exports": {
-    ".": "./index.js",
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
     "./package": "./package.json",
     "./global": "./global.js"
   },
   "files": [
     "index.js",
+    "index.d.ts",
     "global.js",
     "binding.c",
     "binding.js",
