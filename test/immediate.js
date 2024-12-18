@@ -127,7 +127,7 @@ test('setImmediate following setTimeout', async function (t) {
   await new Promise((resolve) => timers.setImmediate(resolve))
   t.pass('second done')
 
-  clearTimeout(timer)
+  timers.clearTimeout(timer)
 })
 
 test('setImmediate that triggers setTimeout', async function (t) {
