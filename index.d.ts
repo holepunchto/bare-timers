@@ -8,13 +8,25 @@ declare class Timer {
   hasRef(): boolean
 }
 
-export function setTimeout(fn: Function, ms: number, ...args: any[]): Timer
-export function setTimeout(fn: Function, ...args: any[]): Timer
+export function setTimeout<T extends unknown[]>(
+  fn: (...args: T) => unknown,
+  ms: number,
+  ...args: T
+): Timer
+
 export function clearTimeout(timer: Timer): void
 
-export function setInterval(fn: Function, ms: number, ...args: any[]): Timer
-export function setInterval(fn: Function, ...args: any[]): Timer
+export function setInterval<T extends unknown[]>(
+  fn: (...args: T) => unknown,
+  ms: number,
+  ...args: T
+): Timer
+
 export function clearInterval(timer: Timer): void
 
-export function setImmediate(fn: Function, ...args: any[]): Timer
+export function setImmediate<T extends unknown[]>(
+  fn: (...args: T) => unknown,
+  ...args: T
+): Timer
+
 export function clearImmediate(timer: Timer): void
