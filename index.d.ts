@@ -1,5 +1,5 @@
-declare class Timer {
-  get active(): boolean
+interface Timer {
+  readonly active: boolean
 
   refresh(): this
   ref(): this
@@ -7,6 +7,10 @@ declare class Timer {
 
   hasRef(): boolean
 }
+
+declare class Timer {}
+
+export { type Timer }
 
 export function setTimeout<T extends unknown[]>(
   fn: (...args: T) => unknown,
