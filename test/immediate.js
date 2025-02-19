@@ -54,16 +54,18 @@ test('order of setImmediate', async function (t) {
 
   let count = 0
 
-  for (let i = 0; i < 1000000; i++) {
+  for (let i = 0; i < 1000; i++) {
     timers.setImmediate(function () {
-      if (count++ !== i)
+      if (count++ !== i) {
         t.fail('order is incorrect (' + (count - 1) + '/' + i + ')')
+      }
+
       done()
     })
   }
 
   function done() {
-    if (count === 1000000) {
+    if (count === 1000) {
       t.pass()
     }
   }

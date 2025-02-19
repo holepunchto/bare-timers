@@ -1,4 +1,3 @@
-/* global Bare */
 const Heap = require('tiny-binary-heap')
 const binding = require('./binding')
 

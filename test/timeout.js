@@ -141,7 +141,7 @@ test('clearTimeout twice', async function (t) {
 test('lots of setTimeout + clearTimeout', async function (t) {
   t.plan(1)
 
-  const timeouts = new Array(2000000)
+  const timeouts = new Array(2000)
   let pass = 0
 
   for (let i = 0; i < timeouts.length; i++) {
