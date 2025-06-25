@@ -276,6 +276,7 @@ function onimmediate() {
   }
 
   if (uncaughtError !== null) {
+    if (queue.length > 0) binding.immediate(handle)
     throw uncaughtError
   }
 }
