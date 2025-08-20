@@ -180,7 +180,7 @@ function updateTimer(ms) {
 }
 
 function ontimer() {
-  const now = Date.now()
+  let now = Date.now()
 
   if (now < nextExpiry) return nextExpiry - now
 
@@ -206,6 +206,8 @@ function ontimer() {
         uncaughtError = err
         break
       }
+
+      now = Date.now()
     }
 
     if (next.tail === null) {
@@ -226,6 +228,8 @@ function ontimer() {
     queue.filter(alive)
     garbage = 0
   }
+
+  now = Date.now()
 
   let nextDelay
 
