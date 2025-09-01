@@ -134,7 +134,7 @@ const immediates = new TimerList(0)
 
 const handle = binding.init(ontimer, onimmediate)
 
-Bare.on('idle', pause).on('resume', resume)
+Bare.on('idle', pause).on('resume', resume).on('wakeup', resume)
 
 let refs = 0
 let garbage = 0
