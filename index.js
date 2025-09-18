@@ -49,7 +49,7 @@ class Timeout extends Task {
     return this
   }
 
-  static compare(a, b) {
+  static _compare(a, b) {
     return a._expiry < b._expiry ? -1 : a._expiry > b._expiry ? 1 : 0
   }
 }
@@ -59,7 +59,7 @@ class Immediate extends Task {}
 class Scheduler {
   constructor() {
     this._refs = 0
-    this._timeouts = new Heap(Timeout.compare)
+    this._timeouts = new Heap(Timeout._compare)
     this._immediates = new FIFO()
 
     this._handle = binding.init(this, this._ontimeout, this._onimmediate)
