@@ -13,7 +13,7 @@ interface Immediate extends Task {}
 export { Timeout, Immediate }
 
 export function setTimeout<T extends unknown[]>(
-  fn: (...args: T) => unknown,
+  callback: (...args: T) => unknown,
   delay: number,
   ...args: T
 ): Timeout
@@ -21,7 +21,7 @@ export function setTimeout<T extends unknown[]>(
 export function clearTimeout(timer: Timeout): void
 
 export function setInterval<T extends unknown[]>(
-  fn: (...args: T) => unknown,
+  callback: (...args: T) => unknown,
   delay: number,
   ...args: T
 ): Timeout
@@ -29,7 +29,7 @@ export function setInterval<T extends unknown[]>(
 export function clearInterval(timer: Timeout): void
 
 export function setImmediate<T extends unknown[]>(
-  fn: (...args: T) => unknown,
+  callback: (...args: T) => unknown,
   ...args: T
 ): Immediate
 
