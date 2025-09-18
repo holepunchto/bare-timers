@@ -1,6 +1,5 @@
-const Heap = require('tiny-binary-heap')
-const FIFO = require('fast-fifo')
 const binding = require('./binding')
+const Heap = require('./lib/heap')
 
 const TIMEOUT = 1
 const IMMEDIATE = 2
@@ -41,6 +40,7 @@ class Timeout extends Task {
   constructor(scheduler, delay, expiry, repeat, callback, args) {
     super(scheduler, callback, args)
 
+    this._index = -1
     this._delay = delay
     this._expiry = expiry
 
@@ -55,10 +55,6 @@ class Timeout extends Task {
     this._scheduler._refresh(this)
     return this
   }
-
-  static _compare(a, b) {
-    return a._expiry < b._expiry ? -1 : a._expiry > b._expiry ? 1 : 0
-  }
 }
 
 class Immediate extends Task {
@@ -70,8 +66,8 @@ class Immediate extends Task {
 class Scheduler {
   constructor() {
     this._refs = 0
-    this._timeouts = new Heap(Timeout._compare)
-    this._immediates = new FIFO()
+    this._timeouts = new Heap()
+    this._immediates = []
 
     this._handle = binding.init(this, this._ontimeout, this._onimmediate)
   }
@@ -125,7 +121,7 @@ class Scheduler {
         if ((timeout._state & REFED) !== 0) this._acquire()
       }
 
-      this._timeouts.update()
+      this._timeouts.update(timeout)
     } else {
       timeout._state |= ACTIVE
 
@@ -161,7 +157,7 @@ class Scheduler {
 
       binding.timeout(this._handle, 0)
 
-      this._timeouts.update()
+      this._timeouts.update(task)
     }
   }
 
@@ -211,7 +207,7 @@ class Scheduler {
       if ((timeout._state & REPEAT) !== 0) {
         timeout._expiry = now + timeout._delay
 
-        this._timeouts.update()
+        this._timeouts.update(timeout)
       } else {
         timeout._state &= ~ACTIVE
 
@@ -232,21 +228,30 @@ class Scheduler {
   }
 
   _onimmediate() {
+    const immediates = this._immediates
+    this._immediates = []
+
     let caught = false
     let err = null
 
-    while (this._immediates.length > 0) {
-      const immediate = this._immediates.peek()
+    for (let i = 0, n = immediates.length; i < n; i++) {
+      const immediate = immediates[i]
 
       if ((immediate._state & CLEARED) !== 0) {
         immediate._state &= ~ACTIVE & ~CLEARED
-
-        this._immediates.shift()
 
         continue
       }
 
       if (caught) {
+        const remaining = immediates.slice(i)
+
+        if (this._immediates.length === 0) {
+          this._immediates = remaining
+        } else {
+          this._immediates = remaining.concat(this._immediates)
+        }
+
         binding.immediate(this._handle)
 
         break
@@ -255,8 +260,6 @@ class Scheduler {
       immediate._state &= ~ACTIVE
 
       if ((immediate._state & REFED) !== 0) this._release()
-
-      this._immediates.shift()
 
       try {
         Reflect.apply(immediate._callback, null, immediate._args)
