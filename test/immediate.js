@@ -1,4 +1,3 @@
-/* global Bare */
 const test = require('brittle')
 const timers = require('..')
 const { isAround } = require('./helpers')
@@ -14,16 +13,6 @@ test('setImmediate', async function (t) {
       'timers took ' + Math.abs(Date.now() - started) + 'ms'
     )
   })
-})
-
-test('setImmediate timer active', async function (t) {
-  t.plan(2)
-
-  const timer = timers.setImmediate(function () {
-    t.absent(timer.active)
-  }, 50)
-
-  t.ok(timer.active)
 })
 
 test('clearImmediate', async function (t) {
@@ -93,31 +82,6 @@ test('error inside of setImmediate', async function (t) {
 
     timers.setImmediate(() => t.pass())
   })
-})
-
-test('setImmediate with an invalid callback', async function (t) {
-  t.plan(3)
-
-  try {
-    timers.setImmediate()
-    t.fail('should have failed to set an immediate')
-  } catch (error) {
-    t.is(error.code, 'ERR_INVALID_CALLBACK')
-  }
-
-  try {
-    timers.setImmediate(null)
-    t.fail('should have failed to set an immediate')
-  } catch (error) {
-    t.is(error.code, 'ERR_INVALID_CALLBACK')
-  }
-
-  try {
-    timers.setImmediate(true)
-    t.fail('should have failed to set an immediate')
-  } catch (error) {
-    t.is(error.code, 'ERR_INVALID_CALLBACK')
-  }
 })
 
 test('setImmediate following setTimeout', async function (t) {

@@ -35,18 +35,6 @@ test('setInterval multiple cycles', async function (t) {
   }, 50)
 })
 
-test('setInterval timer active', async function (t) {
-  t.plan(3)
-
-  const timer = timers.setInterval(function () {
-    t.ok(timer.active)
-    timers.clearInterval(timer)
-    t.absent(timer.active)
-  }, 50)
-
-  t.ok(timer.active)
-})
-
 test.skip('interrupt setInterval with CPU spin', async function (t) {
   t.plan(1)
 

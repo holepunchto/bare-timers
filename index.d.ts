@@ -1,36 +1,36 @@
-interface Timer {
-  readonly active: boolean
-
-  refresh(): this
+interface Task {
   ref(): this
   unref(): this
-
   hasRef(): boolean
 }
 
-declare class Timer {}
+interface Timeout extends Task {
+  refresh(): this
+}
 
-export { type Timer }
+interface Immediate extends Task {}
+
+export { Timeout, Immediate }
 
 export function setTimeout<T extends unknown[]>(
   fn: (...args: T) => unknown,
-  ms: number,
+  delay: number,
   ...args: T
-): Timer
+): Timeout
 
-export function clearTimeout(timer: Timer): void
+export function clearTimeout(timer: Timeout): void
 
 export function setInterval<T extends unknown[]>(
   fn: (...args: T) => unknown,
-  ms: number,
+  delay: number,
   ...args: T
-): Timer
+): Timeout
 
-export function clearInterval(timer: Timer): void
+export function clearInterval(timer: Timeout): void
 
 export function setImmediate<T extends unknown[]>(
   fn: (...args: T) => unknown,
   ...args: T
-): Timer
+): Immediate
 
-export function clearImmediate(timer: Timer): void
+export function clearImmediate(immediate: Immediate): void

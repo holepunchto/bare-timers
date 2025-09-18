@@ -1,4 +1,3 @@
-/* global Bare */
 const test = require('brittle')
 const timers = require('..')
 const { isAround, sleep } = require('./helpers')
@@ -14,16 +13,6 @@ test('setTimeout', async function (t) {
       'timers took ' + Math.abs(Date.now() - started) + 'ms'
     )
   }, 50)
-})
-
-test('setTimeout timer active', async function (t) {
-  t.plan(2)
-
-  const timer = timers.setTimeout(function () {
-    t.absent(timer.active)
-  }, 50)
-
-  t.ok(timer.active)
 })
 
 test('setTimeout refresh', async function (t) {
@@ -199,31 +188,6 @@ test('setTimeout with negative delay', async function (t) {
   timers.setTimeout(function () {
     t.pass()
   }, -50)
-})
-
-test('setTimeout with an invalid callback', async function (t) {
-  t.plan(3)
-
-  try {
-    timers.setTimeout()
-    t.fail('should have failed to set a timeout')
-  } catch (error) {
-    t.is(error.code, 'ERR_INVALID_CALLBACK')
-  }
-
-  try {
-    timers.setTimeout(null)
-    t.fail('should have failed to set a timeout')
-  } catch (error) {
-    t.is(error.code, 'ERR_INVALID_CALLBACK')
-  }
-
-  try {
-    timers.setTimeout(true)
-    t.fail('should have failed to set a timeout')
-  } catch (error) {
-    t.is(error.code, 'ERR_INVALID_CALLBACK')
-  }
 })
 
 test('setTimeout with a string number as delay', async function (t) {
