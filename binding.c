@@ -52,11 +52,12 @@ bare_timers__on_check(uv_check_t *handle) {
 
   bare_timer_scheduler_t *scheduler = (bare_timer_scheduler_t *) handle->data;
 
-  err = uv_check_stop(&scheduler->check);
+#define V(handle) \
+  err = uv_##handle##_stop(&scheduler->handle); \
   assert(err == 0);
-
-  err = uv_idle_stop(&scheduler->idle);
-  assert(err == 0);
+  V(check)
+  V(idle)
+#undef V
 
   js_env_t *env = scheduler->env;
 
@@ -220,7 +221,7 @@ bare_timers_unref(js_env_t *env, js_callback_info_t *info) {
 }
 
 static js_value_t *
-bare_timers_start(js_env_t *env, js_callback_info_t *info) {
+bare_timers_timeout(js_env_t *env, js_callback_info_t *info) {
   int err;
 
   size_t argc = 2;
@@ -240,37 +241,7 @@ bare_timers_start(js_env_t *env, js_callback_info_t *info) {
   assert(err == 0);
 
   err = uv_timer_start(&scheduler->timer, bare_timers__on_timer, delay, 0);
-
-  if (err < 0) {
-    err = js_throw_error(env, uv_err_name(err), uv_strerror(err));
-    assert(err == 0);
-  }
-
-  return NULL;
-}
-
-static js_value_t *
-bare_timers_stop(js_env_t *env, js_callback_info_t *info) {
-  int err;
-
-  size_t argc = 1;
-  js_value_t *argv[1];
-
-  err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
   assert(err == 0);
-
-  assert(argc == 1);
-
-  bare_timer_scheduler_t *scheduler;
-  err = js_get_arraybuffer_info(env, argv[0], (void **) &scheduler, NULL);
-  assert(err == 0);
-
-  err = uv_timer_stop(&scheduler->timer);
-
-  if (err < 0) {
-    err = js_throw_error(env, uv_err_name(err), uv_strerror(err));
-    assert(err == 0);
-  }
 
   return NULL;
 }
@@ -291,21 +262,12 @@ bare_timers_immediate(js_env_t *env, js_callback_info_t *info) {
   err = js_get_arraybuffer_info(env, argv[0], (void **) &scheduler, NULL);
   assert(err == 0);
 
-  err = uv_check_start(&scheduler->check, bare_timers__on_check);
-
-  if (err < 0) {
-    err = js_throw_error(env, uv_err_name(err), uv_strerror(err));
-    assert(err == 0);
-
-    return NULL;
-  }
-
-  err = uv_idle_start(&scheduler->idle, bare_timers__on_idle);
-
-  if (err < 0) {
-    err = js_throw_error(env, uv_err_name(err), uv_strerror(err));
-    assert(err == 0);
-  }
+#define V(handle) \
+  err = uv_##handle##_start(&scheduler->handle, bare_timers__on_##handle); \
+  assert(err == 0);
+  V(check)
+  V(idle)
+#undef V
 
   return NULL;
 }
@@ -326,8 +288,7 @@ bare_timers_exports(js_env_t *env, js_value_t *exports) {
   V("init", bare_timers_init)
   V("ref", bare_timers_ref)
   V("unref", bare_timers_unref)
-  V("start", bare_timers_start)
-  V("stop", bare_timers_stop)
+  V("timeout", bare_timers_timeout)
   V("immediate", bare_timers_immediate)
 #undef V
 

@@ -96,7 +96,7 @@ class Scheduler {
     const next = this._timeouts.peek()
 
     if (next === undefined || next._expiry > timeout._expiry) {
-      binding.start(this._handle, Math.max(0, timeout._expiry - now))
+      binding.timeout(this._handle, Math.max(0, timeout._expiry - now))
     }
 
     this._timeouts.push(timeout)
@@ -184,7 +184,7 @@ class Scheduler {
       }
 
       if (caught || timeout._expiry > now) {
-        binding.start(this._handle, Math.max(0, timeout._expiry - now))
+        binding.timeout(this._handle, Math.max(0, timeout._expiry - now))
 
         break
       }
