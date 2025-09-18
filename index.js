@@ -2,6 +2,9 @@ const Heap = require('tiny-binary-heap')
 const FIFO = require('fast-fifo')
 const binding = require('./binding')
 
+const TIMEOUT = 1
+const IMMEDIATE = 2
+
 const ACTIVE = 0x1
 const CLEARED = 0x2
 const REFED = 0x4
@@ -44,6 +47,10 @@ class Timeout extends Task {
     if (repeat) this._state |= REPEAT
   }
 
+  get _type() {
+    return TIMEOUT
+  }
+
   refresh() {
     this._scheduler._refresh(this)
     return this
@@ -54,7 +61,11 @@ class Timeout extends Task {
   }
 }
 
-class Immediate extends Task {}
+class Immediate extends Task {
+  get _type() {
+    return IMMEDIATE
+  }
+}
 
 class Scheduler {
   constructor() {
@@ -144,6 +155,14 @@ class Scheduler {
     task._state |= CLEARED
 
     if ((task._state & REFED) !== 0) this._release()
+
+    if (task._type === TIMEOUT) {
+      task._expiry = 0
+
+      binding.timeout(this._handle, 0)
+
+      this._timeouts.update()
+    }
   }
 
   _ref(task) {
