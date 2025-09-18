@@ -10,7 +10,10 @@ const REFED = 0x4
 const REPEAT = 0x8
 
 class Task {
+  static _id = 0
+
   constructor(scheduler, callback, args) {
+    this._id = ++Task._id
     this._state = ACTIVE | REFED
     this._scheduler = scheduler
     this._callback = callback
