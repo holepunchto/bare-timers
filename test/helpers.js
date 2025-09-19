@@ -1,7 +1,3 @@
-/* global Bare */
-
-const nil = new Int32Array(new SharedArrayBuffer(4))
-
 const isWindows = Bare.platform === 'win32'
 
 exports.isAround = function isAround(
@@ -12,6 +8,8 @@ exports.isAround = function isAround(
   return Math.abs(actual - expected) < epsilon
 }
 
+const lock = new Int32Array(new SharedArrayBuffer(4))
+
 exports.sleep = function sleep(ms) {
-  Atomics.wait(nil, 0, 0, ms)
+  Atomics.wait(lock, 0, 0, ms)
 }

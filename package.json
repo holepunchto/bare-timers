@@ -1,6 +1,6 @@
 {
   "name": "bare-timers",
-  "version": "3.0.3",
+  "version": "3.1.0-0",
   "description": "Native timers for Javascript",
   "exports": {
     "./package": "./package.json",
@@ -21,11 +21,12 @@
     "binding.c",
     "binding.js",
     "CMakeLists.txt",
+    "lib",
     "prebuilds"
   ],
   "addon": true,
   "scripts": {
-    "test": "prettier . --check && bare test/all.js"
+    "test": "prettier . --check && bare test.js"
   },
   "repository": {
     "type": "git",
@@ -39,9 +40,6 @@
   "homepage": "https://github.com/holepunchto/bare-timers#readme",
   "engines": {
     "bare": ">=1.7.0"
-  },
-  "dependencies": {
-    "tiny-binary-heap": "^1.1.0"
   },
   "devDependencies": {
     "brittle": "^3.1.1",
