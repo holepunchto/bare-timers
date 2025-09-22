@@ -38,6 +38,10 @@ test('clearImmediate twice', async function (t) {
   timers.clearImmediate(id)
 })
 
+test('clearImmediate null', async function (t) {
+  timers.clearImmediate(null)
+})
+
 test('order of setImmediate', async function (t) {
   t.plan(1)
 

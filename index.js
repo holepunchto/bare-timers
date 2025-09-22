@@ -147,6 +147,8 @@ class Scheduler {
   }
 
   _clear(task) {
+    if (typeof task !== 'object' || task === null) return
+
     if ((task._state & CLEARED) !== 0 || (task._state & ACTIVE) === 0) {
       return
     }

@@ -127,6 +127,10 @@ test('clearTimeout twice', async function (t) {
   timers.clearTimeout(id)
 })
 
+test('clearTimeout null', async function (t) {
+  timers.clearTimeout(null)
+})
+
 test('lots of setTimeout + clearTimeout', async function (t) {
   t.plan(1)
 
