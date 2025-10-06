@@ -73,6 +73,11 @@ class Scheduler {
     this._immediates = []
 
     this._handle = binding.init(this, this._ontimeout, this._onimmediate)
+
+    const stop = this._stop.bind(this)
+    const start = this._start.bind(this)
+
+    Bare.on('idle', stop).on('resume', start).on('wakeup', start)
   }
 
   _acquire() {
@@ -184,6 +189,16 @@ class Scheduler {
     task._state &= ~REFED
 
     this._release()
+  }
+
+  _stop() {
+    binding.stop(this._handle)
+  }
+
+  _start() {
+    if (this._timeouts.length > 0) binding.timeout(this._handle, 0)
+
+    if (this._immediates.length > 0) binding.immediate(this._handle)
   }
 
   _ontimeout() {
