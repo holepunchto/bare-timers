@@ -4,13 +4,11 @@ interface Task {
   hasRef(): boolean
 }
 
-interface Timeout extends Task {
+export interface Timeout extends Task {
   refresh(): this
 }
 
-interface Immediate extends Task {}
-
-export { Timeout, Immediate }
+export interface Immediate extends Task {}
 
 export function setTimeout<T extends unknown[]>(
   callback: (...args: T) => unknown,

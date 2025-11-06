@@ -8,10 +8,7 @@ test('setInterval', async function (t) {
   const started = Date.now()
 
   const id = timers.setInterval(function () {
-    t.ok(
-      isAround(Date.now() - started, 50),
-      'timers took ' + Math.abs(Date.now() - started) + 'ms'
-    )
+    t.ok(isAround(Date.now() - started, 50), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
     timers.clearInterval(id)
   }, 50)
 })
@@ -23,10 +20,7 @@ test('setInterval multiple cycles', async function (t) {
   let intervalCount = 0
 
   const id = timers.setInterval(function () {
-    t.ok(
-      isAround(Date.now() - started, 50),
-      'timers took ' + Math.abs(Date.now() - started) + 'ms'
-    )
+    t.ok(isAround(Date.now() - started, 50), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
     started = Date.now()
 
     if (++intervalCount === 3) {
@@ -41,10 +35,7 @@ test.skip('interrupt setInterval with CPU spin', async function (t) {
   const started = Date.now()
 
   const id = timers.setInterval(function () {
-    t.ok(
-      isAround(Date.now() - started, 75),
-      'timers took ' + Math.abs(Date.now() - started) + 'ms'
-    )
+    t.ok(isAround(Date.now() - started, 75), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
     timers.clearInterval(id)
   }, 50)
 
@@ -57,10 +48,7 @@ test.skip('interrupt setInterval with Atomics.wait', async function (t) {
   const started = Date.now()
 
   const id = timers.setInterval(function () {
-    t.ok(
-      isAround(Date.now() - started, 75),
-      'timers took ' + Math.abs(Date.now() - started) + 'ms'
-    )
+    t.ok(isAround(Date.now() - started, 75), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
     timers.clearInterval(id)
   }, 50)
 
@@ -106,10 +94,7 @@ test('multiple setInterval', async function (t) {
 })
 
 test('clearInterval', async function (t) {
-  const id = timers.setInterval(
-    () => t.fail('interval should not be called'),
-    20
-  )
+  const id = timers.setInterval(() => t.fail('interval should not be called'), 20)
 
   timers.clearInterval(id)
 })

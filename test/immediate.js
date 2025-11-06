@@ -8,10 +8,7 @@ test('setImmediate', async function (t) {
   const started = Date.now()
 
   timers.setImmediate(function () {
-    t.ok(
-      isAround(Date.now() - started, 0),
-      'timers took ' + Math.abs(Date.now() - started) + 'ms'
-    )
+    t.ok(isAround(Date.now() - started, 0), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
   })
 })
 

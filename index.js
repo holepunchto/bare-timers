@@ -97,14 +97,7 @@ class Scheduler {
 
     const now = Date.now()
 
-    const timeout = new Timeout(
-      this,
-      delay,
-      now + delay,
-      repeat,
-      callback,
-      args
-    )
+    const timeout = new Timeout(this, delay, now + delay, repeat, callback, args)
 
     this._acquire()
 
@@ -318,3 +311,5 @@ exports.setImmediate = function setImmediate(callback, ...args) {
 exports.clearImmediate = function clearImmediate(immediate) {
   scheduler._clear(immediate)
 }
+
+exports.promises = require('./promises')

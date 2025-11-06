@@ -14,7 +14,7 @@ test('unref and a timer stays alive', async function (t) {
   }
 })
 
-// must be last test!
+// Must be last
 test('ref in callbacks are noops', async function (t) {
   t.plan(1)
 

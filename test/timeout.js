@@ -8,10 +8,7 @@ test('setTimeout', async function (t) {
   const started = Date.now()
 
   timers.setTimeout(function () {
-    t.ok(
-      isAround(Date.now() - started, 50),
-      'timers took ' + Math.abs(Date.now() - started) + 'ms'
-    )
+    t.ok(isAround(Date.now() - started, 50), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
   }, 50)
 })
 
@@ -42,10 +39,7 @@ test.skip('interrupt setTimeout with CPU spin', async function (t) {
   const started = Date.now()
 
   timers.setTimeout(function () {
-    t.ok(
-      isAround(Date.now() - started, 75),
-      'timers took ' + Math.abs(Date.now() - started) + 'ms'
-    )
+    t.ok(isAround(Date.now() - started, 75), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
   }, 50)
 
   while (Date.now() - started < 75) {} // eslint-disable-line no-empty
@@ -57,10 +51,7 @@ test.skip('interrupt setTimeout with Atomics.wait', async function (t) {
   const started = Date.now()
 
   timers.setTimeout(function () {
-    t.ok(
-      isAround(Date.now() - started, 75),
-      'timers took ' + Math.abs(Date.now() - started) + 'ms'
-    )
+    t.ok(isAround(Date.now() - started, 75), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
   }, 50)
 
   sleep(75)
@@ -179,10 +170,7 @@ test('setTimeout with zero delay', async function (t) {
   const started = Date.now()
 
   timers.setTimeout(function () {
-    t.ok(
-      isAround(Date.now() - started, 0),
-      'timers took ' + Math.abs(Date.now() - started) + 'ms'
-    )
+    t.ok(isAround(Date.now() - started, 0), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
   }, 0)
 })
 
@@ -200,10 +188,7 @@ test('setTimeout with a string number as delay', async function (t) {
   const started = Date.now()
 
   timers.setTimeout(function () {
-    t.ok(
-      isAround(Date.now() - started, 25),
-      'timers took ' + Math.abs(Date.now() - started) + 'ms'
-    )
+    t.ok(isAround(Date.now() - started, 25), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
   }, '25')
 })
 

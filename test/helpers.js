@@ -1,10 +1,6 @@
 const isWindows = Bare.platform === 'win32'
 
-exports.isAround = function isAround(
-  actual,
-  expected,
-  epsilon = isWindows ? 50 : 25
-) {
+exports.isAround = function isAround(actual, expected, epsilon = isWindows ? 50 : 25) {
   return Math.abs(actual - expected) < epsilon
 }
 

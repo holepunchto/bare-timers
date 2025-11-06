@@ -17,10 +17,7 @@ declare global {
 
   function clearInterval(timer: Timer): void
 
-  function setImmediate<T extends unknown[]>(
-    fn: (...args: T) => unknown,
-    ...args: T
-  ): Timer
+  function setImmediate<T extends unknown[]>(fn: (...args: T) => unknown, ...args: T): Timer
 
   function clearImmediate(timer: Timer): void
 }
