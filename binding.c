@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <uv.h>
 
+#if defined(_WIN32)
+#include <timeapi.h>
+#endif
+
 typedef struct {
   uv_timer_t timer;
   uv_check_t check;
@@ -302,6 +306,10 @@ bare_timers_stop(js_env_t *env, js_callback_info_t *info) {
 static js_value_t *
 bare_timers_exports(js_env_t *env, js_value_t *exports) {
   int err;
+
+#if defined(_WIN32)
+  timeBeginPeriod(1);
+#endif
 
 #define V(name, fn) \
   { \
