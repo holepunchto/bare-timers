@@ -1,4 +1,7 @@
-/** The base handle shared by `Timeout` and `Immediate`, controlling whether it keeps the event loop alive. */
+/**
+ * The base handle shared by `Timeout` and `Immediate`, controlling whether it keeps the event loop
+ * alive.
+ */
 interface Task {
   /** Ref the task, so it keeps the event loop alive while pending. Returns the task. */
   ref(): this
@@ -10,7 +13,10 @@ interface Task {
 
 /** The handle returned by `setTimeout` and `setInterval`. */
 export interface Timeout extends Task {
-  /** Reset the timeout's delay to start counting from now, rescheduling it without allocating a new handle. Returns the timeout. */
+  /**
+   * Reset the timeout's delay to start counting from now, rescheduling it without allocating a new
+   * handle. Returns the timeout.
+   */
   refresh(): this
 }
 
@@ -23,7 +29,8 @@ export interface Immediate extends Task {}
  * @param delay - Milliseconds to wait before running; clamped to a minimum of `1`.
  * @param args - Additional arguments passed to `callback`.
  * @param value - The value the returned promise resolves with.
- * @param options - Options; `ref` defaults to `true` (set `false` to unref), and `signal` may be an `AbortSignal` that cancels the timer.
+ * @param options - Options; `ref` defaults to `true` (set `false` to unref), and `signal` may be an
+ * `AbortSignal` that cancels the timer.
  */
 export function setTimeout<T extends unknown[]>(
   callback: (...args: T) => unknown,
@@ -43,7 +50,8 @@ export function clearTimeout(timer: Timeout): void
  * @param delay - Milliseconds between runs; clamped to a minimum of `1`.
  * @param args - Additional arguments passed to `callback`.
  * @param value - The value yielded on each iteration.
- * @param options - Options; `ref` defaults to `true` (set `false` to unref), and `signal` may be an `AbortSignal` that cancels the timer.
+ * @param options - Options; `ref` defaults to `true` (set `false` to unref), and `signal` may be an
+ * `AbortSignal` that cancels the timer.
  */
 export function setInterval<T extends unknown[]>(
   callback: (...args: T) => unknown,
@@ -62,7 +70,8 @@ export function clearInterval(timer: Timeout): void
  * @param callback - The function to run at the end of the current event loop iteration.
  * @param args - Additional arguments passed to `callback`.
  * @param value - The value the returned promise resolves with.
- * @param options - Options; `ref` defaults to `true` (set `false` to unref), and `signal` may be an `AbortSignal` that cancels the timer.
+ * @param options - Options; `ref` defaults to `true` (set `false` to unref), and `signal` may be an
+ * `AbortSignal` that cancels the timer.
  */
 export function setImmediate<T extends unknown[]>(
   callback: (...args: T) => unknown,

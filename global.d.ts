@@ -7,7 +7,8 @@ declare global {
    * @param delay - Milliseconds to wait before running; clamped to a minimum of `1`.
    * @param args - Additional arguments passed to `callback`.
    * @param value - The value the returned promise resolves with.
-   * @param options - Options; `ref` defaults to `true` (set `false` to unref), and `signal` may be an `AbortSignal` that cancels the timer.
+   * @param options - Options; `ref` defaults to `true` (set `false` to unref), and `signal` may be
+   * an `AbortSignal` that cancels the timer.
    */
   function setTimeout<T extends unknown[]>(
     fn: (...args: T) => unknown,
@@ -27,7 +28,8 @@ declare global {
    * @param delay - Milliseconds between runs; clamped to a minimum of `1`.
    * @param args - Additional arguments passed to `callback`.
    * @param value - The value yielded on each iteration.
-   * @param options - Options; `ref` defaults to `true` (set `false` to unref), and `signal` may be an `AbortSignal` that cancels the timer.
+   * @param options - Options; `ref` defaults to `true` (set `false` to unref), and `signal` may be
+   * an `AbortSignal` that cancels the timer.
    */
   function setInterval<T extends unknown[]>(
     fn: (...args: T) => unknown,
@@ -46,7 +48,8 @@ declare global {
    * @param callback - The function to run at the end of the current event loop iteration.
    * @param args - Additional arguments passed to `callback`.
    * @param value - The value the returned promise resolves with.
-   * @param options - Options; `ref` defaults to `true` (set `false` to unref), and `signal` may be an `AbortSignal` that cancels the timer.
+   * @param options - Options; `ref` defaults to `true` (set `false` to unref), and `signal` may be
+   * an `AbortSignal` that cancels the timer.
    */
   function setImmediate<T extends unknown[]>(fn: (...args: T) => unknown, ...args: T): Timer
 
