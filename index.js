@@ -1,4 +1,5 @@
 const binding = require('./binding')
+const errors = require('./lib/errors')
 const Heap = require('./lib/heap')
 
 const TIMEOUT = 1
@@ -89,6 +90,8 @@ class Scheduler {
   }
 
   _timeout(delay, repeat, callback, args = []) {
+    validateCallback(callback)
+
     delay = Math.floor(delay)
 
     if (delay < 1 || delay > Number.MAX_SAFE_INTEGER || Number.isNaN(delay)) {
@@ -133,6 +136,8 @@ class Scheduler {
   }
 
   _immediate(callback, args = []) {
+    validateCallback(callback)
+
     const immediate = new Immediate(this, callback, args)
 
     this._acquire()
@@ -312,4 +317,12 @@ exports.clearImmediate = function clearImmediate(immediate) {
   scheduler._clear(immediate)
 }
 
+exports.errors = errors
+
 exports.promises = require('./promises')
+
+function validateCallback(callback) {
+  if (typeof callback !== 'function') {
+    throw errors.INVALID_CALLBACK(`Callback must be a function, got ${typeof callback}`)
+  }
+}
