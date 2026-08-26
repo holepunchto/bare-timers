@@ -1,3 +1,5 @@
+import TimerError from './lib/errors'
+
 /**
  * The base handle shared by `Timeout` and `Immediate`, controlling whether it keeps the event loop
  * alive.
@@ -83,3 +85,5 @@ export function setImmediate<T extends unknown[]>(
  * @param immediate - The immediate handle to cancel.
  */
 export function clearImmediate(immediate: Immediate): void
+
+export { type TimerError, TimerError as errors }

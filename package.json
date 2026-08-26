@@ -1,6 +1,6 @@
 {
   "name": "bare-timers",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "Native timers for Javascript",
   "exports": {
     "./package": "./package.json",
@@ -15,6 +15,10 @@
     "./global": {
       "types": "./global.d.ts",
       "default": "./global.js"
+    },
+    "./errors": {
+      "types": "./lib/errors.d.ts",
+      "default": "./lib/errors.js"
     }
   },
   "files": [
@@ -32,7 +36,9 @@
   ],
   "addon": true,
   "scripts": {
-    "test": "prettier . --check && bare test.js"
+    "format": "prettier --write . && lunte --fix",
+    "lint": "prettier --check . && lunte",
+    "test": "brittle-bare --coverage test.js"
   },
   "repository": {
     "type": "git",
@@ -51,6 +57,7 @@
     "bare-abort-controller": "^1.0.0",
     "brittle": "^3.1.1",
     "cmake-bare": "^1.1.6",
+    "lunte": "^1.8.4",
     "prettier": "^3.3.3",
     "prettier-config-holepunch": "^2.0.0"
   },

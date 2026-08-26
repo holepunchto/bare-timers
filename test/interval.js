@@ -98,3 +98,9 @@ test('clearInterval', async function (t) {
 
   timers.clearInterval(id)
 })
+
+test('setInterval with an invalid callback', async function (t) {
+  t.exception(() => timers.setInterval(), /INVALID_CALLBACK/, 'missing')
+  t.exception(() => timers.setInterval(null, 10), /INVALID_CALLBACK/, 'null')
+  t.exception(() => timers.setInterval('code', 10), /INVALID_CALLBACK/, 'string')
+})
