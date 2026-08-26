@@ -1,3 +1,5 @@
+import TimerError from './lib/errors'
+
 interface Task {
   ref(): this
   unref(): this
@@ -32,3 +34,5 @@ export function setImmediate<T extends unknown[]>(
 ): Immediate
 
 export function clearImmediate(immediate: Immediate): void
+
+export { type TimerError, TimerError as errors }

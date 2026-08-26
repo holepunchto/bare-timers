@@ -207,3 +207,9 @@ test('setTimeout with an invalid string as delay', async function (t) {
     t.pass()
   }, 'abcd')
 })
+
+test('setTimeout with an invalid callback', async function (t) {
+  t.exception(() => timers.setTimeout(), /INVALID_CALLBACK/, 'missing')
+  t.exception(() => timers.setTimeout(null, 10), /INVALID_CALLBACK/, 'null')
+  t.exception(() => timers.setTimeout('code', 10), /INVALID_CALLBACK/, 'string')
+})

@@ -108,3 +108,9 @@ test('setImmediate that triggers setTimeout', async function (t) {
     }, 20)
   })
 })
+
+test('setImmediate with an invalid callback', async function (t) {
+  t.exception(() => timers.setImmediate(), /INVALID_CALLBACK/, 'missing')
+  t.exception(() => timers.setImmediate(null), /INVALID_CALLBACK/, 'null')
+  t.exception(() => timers.setImmediate('code'), /INVALID_CALLBACK/, 'string')
+})
