@@ -1,8 +1,12 @@
 #include <assert.h>
 #include <bare.h>
 #include <js.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <uv.h>
+
+#define BARE_TIMERS_MAX_DELAY 9007199254740991
 
 typedef struct {
   uv_timer_t timer;
@@ -12,12 +16,104 @@ typedef struct {
   int closing;
 
   js_env_t *env;
+  js_ref_t *handle;
   js_ref_t *ctx;
   js_ref_t *on_timeout;
   js_ref_t *on_immediate;
 
   js_deferred_teardown_t *teardown;
 } bare_timer_scheduler_t;
+
+static const js_type_tag_t bare_timers__scheduler_tag = {
+  .lower = 0x9f3c5a1e6b2d4708,
+  .upper = 0xc481ed70a53b9f26,
+};
+
+static bool
+bare_timers__check_object(js_env_t *env, js_value_t *value, const char *message) {
+  int err;
+
+  bool is_object;
+  err = js_is_object(env, value, &is_object);
+  assert(err == 0);
+
+  if (!is_object) {
+    err = js_throw_type_error(env, NULL, message);
+    assert(err == 0);
+  }
+
+  return is_object;
+}
+
+static bool
+bare_timers__check_function(js_env_t *env, js_value_t *value, const char *message) {
+  int err;
+
+  bool is_function;
+  err = js_is_function(env, value, &is_function);
+  assert(err == 0);
+
+  if (!is_function) {
+    err = js_throw_type_error(env, NULL, message);
+    assert(err == 0);
+  }
+
+  return is_function;
+}
+
+static bool
+bare_timers__get_delay(js_env_t *env, js_value_t *value, uint64_t *result) {
+  int err;
+
+  bool is_number;
+  err = js_is_number(env, value, &is_number);
+  assert(err == 0);
+
+  if (!is_number) {
+    err = js_throw_type_error(env, NULL, "Delay must be a number");
+    assert(err == 0);
+
+    return false;
+  }
+
+  double delay;
+  err = js_get_value_double(env, value, &delay);
+  assert(err == 0);
+
+  // Written so that NaN, which compares false against everything, clamps to the
+  // lower bound rather than converting to an unspecified integer.
+  if (delay > BARE_TIMERS_MAX_DELAY) delay = BARE_TIMERS_MAX_DELAY;
+  else if (!(delay > 0)) delay = 0;
+
+  *result = (uint64_t) delay;
+
+  return true;
+}
+
+static bool
+bare_timers__get_scheduler(js_env_t *env, js_value_t *value, bare_timer_scheduler_t **result) {
+  int err;
+
+  bool is_object;
+  err = js_is_object(env, value, &is_object);
+  assert(err == 0);
+
+  bool tagged = false;
+
+  if (is_object) {
+    err = js_check_type_tag(env, value, &bare_timers__scheduler_tag, &tagged);
+    assert(err == 0);
+  }
+
+  if (!tagged) {
+    err = js_throw_type_error(env, NULL, "Handle must be a timer scheduler");
+    assert(err == 0);
+
+    return false;
+  }
+
+  return js_unwrap(env, value, (void **) result) == 0;
+}
 
 static void
 bare_timers__on_timer(uv_timer_t *handle) {
@@ -52,8 +148,8 @@ bare_timers__on_check(uv_check_t *handle) {
 
   bare_timer_scheduler_t *scheduler = (bare_timer_scheduler_t *) handle->data;
 
-#define V(handle) \
-  err = uv_##handle##_stop(&scheduler->handle); \
+#define V(name) \
+  err = uv_##name##_stop(&scheduler->name); \
   assert(err == 0);
   V(check)
   V(idle)
@@ -104,6 +200,11 @@ bare_timers__on_close(uv_handle_t *handle) {
   err = js_delete_reference(env, scheduler->ctx);
   assert(err == 0);
 
+  err = js_delete_reference(env, scheduler->handle);
+  assert(err == 0);
+
+  free(scheduler);
+
   err = js_finish_deferred_teardown_callback(teardown);
   assert(err == 0);
 }
@@ -114,7 +215,7 @@ bare_timers__on_teardown(js_deferred_teardown_t *handle, void *data) {
 
   scheduler->closing = 3;
 
-#define V(handle) uv_close((uv_handle_t *) &scheduler->handle, bare_timers__on_close);
+#define V(name) uv_close((uv_handle_t *) &scheduler->name, bare_timers__on_close);
   V(timer)
   V(check)
   V(idle)
@@ -131,13 +232,22 @@ bare_timers_init(js_env_t *env, js_callback_info_t *info) {
   err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
   assert(err == 0);
 
-  assert(argc == 3);
+  if (!bare_timers__check_object(env, argv[0], "Context must be an object")) return NULL;
+  if (!bare_timers__check_function(env, argv[1], "Timeout handler must be a function")) return NULL;
+  if (!bare_timers__check_function(env, argv[2], "Immediate handler must be a function")) return NULL;
 
   js_value_t *handle;
+  err = js_create_object(env, &handle);
+  if (err < 0) return NULL;
 
-  bare_timer_scheduler_t *scheduler;
-  err = js_create_arraybuffer(env, sizeof(bare_timer_scheduler_t), (void **) &scheduler, &handle);
-  assert(err == 0);
+  bare_timer_scheduler_t *scheduler = malloc(sizeof(bare_timer_scheduler_t));
+
+  if (scheduler == NULL) {
+    err = js_throw_error(env, uv_err_name(UV_ENOMEM), uv_strerror(UV_ENOMEM));
+    assert(err == 0);
+
+    return NULL;
+  }
 
   scheduler->env = env;
   scheduler->closing = 0;
@@ -146,14 +256,23 @@ bare_timers_init(js_env_t *env, js_callback_info_t *info) {
   err = js_get_env_loop(env, &loop);
   assert(err == 0);
 
-#define V(handle) \
-  err = uv_##handle##_init(loop, &scheduler->handle); \
+#define V(name) \
+  err = uv_##name##_init(loop, &scheduler->name); \
   assert(err == 0); \
-  scheduler->handle.data = scheduler;
+  scheduler->name.data = scheduler;
   V(timer)
   V(check)
   V(idle)
 #undef V
+
+  err = js_wrap(env, handle, (void *) scheduler, NULL, NULL, NULL);
+  assert(err == 0);
+
+  err = js_add_type_tag(env, handle, &bare_timers__scheduler_tag);
+  assert(err == 0);
+
+  err = js_create_reference(env, handle, 1, &scheduler->handle);
+  assert(err == 0);
 
   err = js_create_reference(env, argv[0], 1, &scheduler->ctx);
   assert(err == 0);
@@ -180,13 +299,12 @@ bare_timers_ref(js_env_t *env, js_callback_info_t *info) {
   err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
   assert(err == 0);
 
-  assert(argc == 1);
-
   bare_timer_scheduler_t *scheduler;
-  err = js_get_arraybuffer_info(env, argv[0], (void **) &scheduler, NULL);
-  assert(err == 0);
+  if (!bare_timers__get_scheduler(env, argv[0], &scheduler)) return NULL;
 
-#define V(handle) uv_ref((uv_handle_t *) &scheduler->handle);
+  if (scheduler->closing) return NULL;
+
+#define V(name) uv_ref((uv_handle_t *) &scheduler->name);
   V(timer)
   V(check)
   V(idle)
@@ -205,13 +323,12 @@ bare_timers_unref(js_env_t *env, js_callback_info_t *info) {
   err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
   assert(err == 0);
 
-  assert(argc == 1);
-
   bare_timer_scheduler_t *scheduler;
-  err = js_get_arraybuffer_info(env, argv[0], (void **) &scheduler, NULL);
-  assert(err == 0);
+  if (!bare_timers__get_scheduler(env, argv[0], &scheduler)) return NULL;
 
-#define V(handle) uv_unref((uv_handle_t *) &scheduler->handle);
+  if (scheduler->closing) return NULL;
+
+#define V(name) uv_unref((uv_handle_t *) &scheduler->name);
   V(timer)
   V(check)
   V(idle)
@@ -230,15 +347,13 @@ bare_timers_timeout(js_env_t *env, js_callback_info_t *info) {
   err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
   assert(err == 0);
 
-  assert(argc == 2);
-
   bare_timer_scheduler_t *scheduler;
-  err = js_get_arraybuffer_info(env, argv[0], (void **) &scheduler, NULL);
-  assert(err == 0);
+  if (!bare_timers__get_scheduler(env, argv[0], &scheduler)) return NULL;
 
-  int64_t delay;
-  err = js_get_value_int64(env, argv[1], &delay);
-  assert(err == 0);
+  uint64_t delay;
+  if (!bare_timers__get_delay(env, argv[1], &delay)) return NULL;
+
+  if (scheduler->closing) return NULL;
 
   err = uv_timer_start(&scheduler->timer, bare_timers__on_timer, delay, 0);
   assert(err == 0);
@@ -256,14 +371,13 @@ bare_timers_immediate(js_env_t *env, js_callback_info_t *info) {
   err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
   assert(err == 0);
 
-  assert(argc == 1);
-
   bare_timer_scheduler_t *scheduler;
-  err = js_get_arraybuffer_info(env, argv[0], (void **) &scheduler, NULL);
-  assert(err == 0);
+  if (!bare_timers__get_scheduler(env, argv[0], &scheduler)) return NULL;
 
-#define V(handle) \
-  err = uv_##handle##_start(&scheduler->handle, bare_timers__on_##handle); \
+  if (scheduler->closing) return NULL;
+
+#define V(name) \
+  err = uv_##name##_start(&scheduler->name, bare_timers__on_##name); \
   assert(err == 0);
   V(check)
   V(idle)
@@ -282,14 +396,13 @@ bare_timers_stop(js_env_t *env, js_callback_info_t *info) {
   err = js_get_callback_info(env, info, &argc, argv, NULL, NULL);
   assert(err == 0);
 
-  assert(argc == 1);
-
   bare_timer_scheduler_t *scheduler;
-  err = js_get_arraybuffer_info(env, argv[0], (void **) &scheduler, NULL);
-  assert(err == 0);
+  if (!bare_timers__get_scheduler(env, argv[0], &scheduler)) return NULL;
 
-#define V(handle) \
-  err = uv_##handle##_stop(&scheduler->handle); \
+  if (scheduler->closing) return NULL;
+
+#define V(name) \
+  err = uv_##name##_stop(&scheduler->name); \
   assert(err == 0);
   V(timer)
   V(check)

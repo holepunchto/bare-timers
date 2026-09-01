@@ -116,6 +116,8 @@ class Scheduler {
   }
 
   _refresh(timeout) {
+    if (!(timeout instanceof Timeout) || timeout._scheduler !== this) return
+
     timeout._expiry = Date.now() + timeout._delay
 
     if ((timeout._state & ACTIVE) !== 0) {
@@ -150,7 +152,7 @@ class Scheduler {
   }
 
   _clear(task) {
-    if (typeof task !== 'object' || task === null) return
+    if (!(task instanceof Task) || task._scheduler !== this) return
 
     if ((task._state & CLEARED) !== 0 || (task._state & ACTIVE) === 0) {
       return
@@ -170,6 +172,8 @@ class Scheduler {
   }
 
   _ref(task) {
+    if (!(task instanceof Task) || task._scheduler !== this) return
+
     if ((task._state & REFED) !== 0 || (task._state & ACTIVE) === 0) {
       return
     }
@@ -180,6 +184,8 @@ class Scheduler {
   }
 
   _unref(task) {
+    if (!(task instanceof Task) || task._scheduler !== this) return
+
     if ((task._state & REFED) === 0 || (task._state & ACTIVE) === 0) {
       return
     }
