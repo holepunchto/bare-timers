@@ -118,7 +118,9 @@ class Scheduler {
   _refresh(timeout) {
     if (!(timeout instanceof Timeout) || timeout._scheduler !== this) return
 
-    timeout._expiry = Date.now() + timeout._delay
+    const now = Date.now()
+
+    timeout._expiry = now + timeout._delay
 
     if ((timeout._state & ACTIVE) !== 0) {
       if ((timeout._state & CLEARED) !== 0) {
@@ -132,6 +134,12 @@ class Scheduler {
       timeout._state |= ACTIVE
 
       if ((timeout._state & REFED) !== 0) this._acquire()
+
+      const next = this._timeouts.peek()
+
+      if (next === undefined || next._expiry > timeout._expiry) {
+        binding.timeout(this._handle, Math.max(0, timeout._expiry - now))
+      }
 
       this._timeouts.push(timeout)
     }
