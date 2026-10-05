@@ -33,6 +33,24 @@ test('setTimeout refresh', async function (t) {
   }, 25)
 })
 
+test('setTimeout refresh after it fired', async function (t) {
+  t.plan(2)
+
+  let started = Date.now()
+  let calls = 0
+
+  const timer = timers.setTimeout(function () {
+    t.ok(isAround(Date.now() - started, 50), 'timers took ' + Math.abs(Date.now() - started) + 'ms')
+
+    if (++calls === 1) {
+      timers.setImmediate(() => {
+        started = Date.now()
+        timer.refresh()
+      })
+    }
+  }, 50)
+})
+
 test.skip('interrupt setTimeout with CPU spin', async function (t) {
   t.plan(1)
 
